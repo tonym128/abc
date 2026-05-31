@@ -12,6 +12,8 @@
 #include "ards_tone.hpp"
 
 #include "ards_vm.hpp"
+#define I2C_IMPLEMENTATION
+#include "ArduboyI2C.h"
 
 #include <math.h>
 
@@ -3847,6 +3849,66 @@ static void sys_draw_tilemap()
 end:
     seek_to_pc();
 #endif
+}
+
+static volatile uint8_t i2c_remote_data = 0;
+static uint8_t i2c_local_data = 0;
+
+static void i2c_on_request() {
+    I2C::reply(&i2c_local_data, 1);
+}
+
+static void i2c_on_receive(const uint8_t *buffer, uint8_t size) {
+    if (size > 0) i2c_remote_data = buffer[0];
+}
+
+static void sys_i2c_begin()
+{
+    I2C::begin();
+}
+
+static void sys_i2c_handshake()
+{
+    auto ptr = vm_pop_begin();
+    uint8_t num_players = vm_pop<uint8_t>(ptr);
+    vm_pop_end(ptr);
+    uint8_t id = I2C::handshake(num_players);
+    I2C::onRequest(i2c_on_request);
+    I2C::onReceive(i2c_on_receive);
+    vm_push(id);
+}
+
+static void sys_i2c_write()
+{
+    auto ptr = vm_pop_begin();
+    uint8_t data = vm_pop<uint8_t>(ptr);
+    uint8_t addr = vm_pop<uint8_t>(ptr);
+    vm_pop_end(ptr);
+    
+    i2c_local_data = data; // Always update local data for slave replies
+    
+    // Only write if we are not targeting ourselves. If addr is 0, we can skip or assume it's a broadcast.
+    // In our logic, Master (ID 0) will write to Slave (ID 1, address 9).
+    I2C::write(addr, &data, 1, true);
+}
+
+static void sys_i2c_read()
+{
+    auto ptr = vm_pop_begin();
+    uint8_t addr = vm_pop<uint8_t>(ptr);
+    vm_pop_end(ptr);
+    
+    // Master (ID 0) reads from Slave (ID 1, address 9)
+    // Slave (ID 1) just returns what it received via onReceive.
+    if (addr != 0) {
+        uint8_t data = 0;
+        I2C::read(addr, &data, 1);
+        if (I2C::error() == TW_SUCCESS) {
+            i2c_remote_data = data;
+        }
+    }
+    
+    vm_push((uint8_t)i2c_remote_data);
 }
 
 sys_func_t const SYS_FUNCS[] PROGMEM =

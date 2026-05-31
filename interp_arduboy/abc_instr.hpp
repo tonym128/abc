@@ -92,6 +92,11 @@ enum sysfunc_t : uint8_t
     SYS_RANDOM_RANGE,
     SYS_TILEMAP_GET,
 
+    SYS_I2C_BEGIN,
+    SYS_I2C_HANDSHAKE,
+    SYS_I2C_WRITE,
+    SYS_I2C_READ,
+
     SYS_NUM_REAL,
 
     // virtual sysfuncs (dedicated codegen)

@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "abc_interp.h"
 
 #include <assert.h>
@@ -115,6 +116,10 @@ enum
     SYS_RANDOM,
     SYS_RANDOM_RANGE,
     SYS_TILEMAP_GET,
+    SYS_I2C_BEGIN,
+    SYS_I2C_HANDSHAKE,
+    SYS_I2C_WRITE,
+    SYS_I2C_READ,
 };
 
 enum
@@ -1190,28 +1195,28 @@ static abc_result_t cfeq(abc_interp_t* interp)
     return push(interp, a == b ? 1 : 0);
 }
 
-static abc_result_t fadd(abc_interp_t* interp)
+static abc_result_t abc_fadd(abc_interp_t* interp)
 {
     float b = popf(interp);
     float a = popf(interp);
     return pushf(interp, a + b);
 }
 
-static abc_result_t fsub(abc_interp_t* interp)
+static abc_result_t abc_fsub(abc_interp_t* interp)
 {
     float b = popf(interp);
     float a = popf(interp);
     return pushf(interp, a - b);
 }
 
-static abc_result_t fmul(abc_interp_t* interp)
+static abc_result_t abc_fmul(abc_interp_t* interp)
 {
     float b = popf(interp);
     float a = popf(interp);
     return pushf(interp, a * b);
 }
 
-static abc_result_t fdiv(abc_interp_t* interp)
+static abc_result_t abc_fdiv(abc_interp_t* interp)
 {
     float b = popf(interp);
     float a = popf(interp);
@@ -3726,6 +3731,10 @@ static abc_result_t sys(abc_interp_t* interp, abc_host_t const* h)
     case SYS_RANDOM:                return sys_random(interp);
     case SYS_RANDOM_RANGE:          return sys_random_range(interp);
     case SYS_TILEMAP_GET:           return sys_tilemap_get(interp, h);
+    case SYS_I2C_BEGIN:
+    case SYS_I2C_HANDSHAKE:
+    case SYS_I2C_WRITE:
+    case SYS_I2C_READ:              return ABC_RESULT_NORMAL;
     default:
         RETURN_ERROR;
     }
@@ -3948,10 +3957,10 @@ abc_result_t abc_run(abc_interp_t* interp, abc_host_t const* h)
     case I_CFEQ:  return cfeq(interp);
     case I_CFLT:  return cflt(interp);
     case I_NOT:   return logical_not(interp);
-    case I_FADD:  return fadd(interp);
-    case I_FSUB:  return fsub(interp);
-    case I_FMUL:  return fmul(interp);
-    case I_FDIV:  return fdiv(interp);
+    case I_FADD:  return abc_fadd(interp);
+    case I_FSUB:  return abc_fsub(interp);
+    case I_FMUL:  return abc_fmul(interp);
+    case I_FDIV:  return abc_fdiv(interp);
     case I_F2I:   return f2i(interp);
     case I_F2U:   return f2u(interp);
     case I_I2F:   return i2f(interp);

@@ -113,6 +113,11 @@ std::unordered_map<std::string, sysfunc_t> const sys_names =
     { "set_random_seed",       SYS_SET_RANDOM_SEED       },
     { "random",                SYS_RANDOM                },
     { "random_range",          SYS_RANDOM_RANGE          },
+    { "i2c_begin",             SYS_I2C_BEGIN             },
+    { "i2c_handshake",         SYS_I2C_HANDSHAKE         },
+    { "i2c_write",             SYS_I2C_WRITE             },
+    { "i2c_read",              SYS_I2C_READ              },
+
 };
 
 static std::string const CAT_GRAPHICS = "Graphics";
@@ -513,6 +518,10 @@ std::unordered_map<sysfunc_t, sysfunc_info_t> const sysfunc_decls
     { SYS_RANDOM,               { { TYPE_U32,   { }, { } }, CAT_RANDOM,
         "Get a 32-bit random value generated from the internal random seed.", {},
         "A 32-bit random value generated from the internal random seed." } },
+        { SYS_I2C_BEGIN,            { { TYPE_VOID,  { }, { } }, CAT_UTILITY, "" } },
+    { SYS_I2C_HANDSHAKE,        { { TYPE_U8,    { TYPE_U8 }, { "num_players" } }, CAT_UTILITY, "" } },
+    { SYS_I2C_WRITE,            { { TYPE_VOID,  { TYPE_U8, TYPE_U8 }, { "addr", "data" } }, CAT_UTILITY, "" } },
+    { SYS_I2C_READ,             { { TYPE_U8,    { TYPE_U8 }, { "addr" } }, CAT_UTILITY, "" } },
     { SYS_RANDOM_RANGE,         { { TYPE_U32,   { TYPE_U32, TYPE_U32 }, { "lo", "hi" } }, CAT_RANDOM,
         "Get a 32-bit random value generated from the internal random seed "
         "constrained to fall within a given range. "
