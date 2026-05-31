@@ -126,6 +126,7 @@ static std::string const CAT_BUTTONS = "Buttons";
 static std::string const CAT_MATH = "Math";
 static std::string const CAT_STRINGS = "Strings";
 static std::string const CAT_UTILITY = "Utility";
+static std::string const CAT_COMMUNICATION = "Communication";
 static std::string const CAT_RANDOM = "Random";
 static std::string const CAT_SAVELOAD = "Save/Load";
 
@@ -137,6 +138,7 @@ std::vector<std::string> const sysfunc_cats =
     CAT_MATH,
     CAT_STRINGS,
     CAT_UTILITY,
+    CAT_COMMUNICATION,
     CAT_RANDOM,
     CAT_SAVELOAD,
 };
@@ -518,10 +520,20 @@ std::unordered_map<sysfunc_t, sysfunc_info_t> const sysfunc_decls
     { SYS_RANDOM,               { { TYPE_U32,   { }, { } }, CAT_RANDOM,
         "Get a 32-bit random value generated from the internal random seed.", {},
         "A 32-bit random value generated from the internal random seed." } },
-        { SYS_I2C_BEGIN,            { { TYPE_VOID,  { }, { } }, CAT_UTILITY, "" } },
-    { SYS_I2C_HANDSHAKE,        { { TYPE_U8,    { TYPE_U8 }, { "num_players" } }, CAT_UTILITY, "" } },
-    { SYS_I2C_WRITE,            { { TYPE_VOID,  { TYPE_U8, TYPE_U8 }, { "addr", "data" } }, CAT_UTILITY, "" } },
-    { SYS_I2C_READ,             { { TYPE_U8,    { TYPE_U8 }, { "addr" } }, CAT_UTILITY, "" } },
+    { SYS_I2C_BEGIN,            { { TYPE_VOID,  { }, { } }, CAT_COMMUNICATION,
+        "Initialize I2C hardware." } },
+    { SYS_I2C_HANDSHAKE,        { { TYPE_U8,    { TYPE_U8 }, { "num_players" } }, CAT_COMMUNICATION,
+        "Perform a handshake to identify players on the I2C bus.", {
+        "The number of players expected to participate in the handshake." },
+        "The unique ID assigned to this player (0-254), or 255 if the handshake failed." } },
+    { SYS_I2C_WRITE,            { { TYPE_VOID,  { TYPE_U8, TYPE_U8 }, { "addr", "data" } }, CAT_COMMUNICATION,
+        "Send a byte of data to a specific I2C address.", {
+        "The 7-bit I2C address of the recipient.",
+        "The byte of data to send." } } },
+    { SYS_I2C_READ,             { { TYPE_U8,    { TYPE_U8 }, { "addr" } }, CAT_COMMUNICATION,
+        "Read a byte of data from a specific I2C address.", {
+        "The 7-bit I2C address of the sender." },
+        "The byte of data received from the specified address." } },
     { SYS_RANDOM_RANGE,         { { TYPE_U32,   { TYPE_U32, TYPE_U32 }, { "lo", "hi" } }, CAT_RANDOM,
         "Get a 32-bit random value generated from the internal random seed "
         "constrained to fall within a given range. "

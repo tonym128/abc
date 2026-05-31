@@ -74,6 +74,11 @@
   - [`$memcpy`](#memcpy)
   - [`$memset`](#memset)
   - [`$millis`](#millis)
+- [Communication](#communication)
+  - [`$i2c_begin`](#i2c_begin)
+  - [`$i2c_handshake`](#i2c_handshake)
+  - [`$i2c_read`](#i2c_read)
+  - [`$i2c_write`](#i2c_write)
 - [Random](#random)
   - [`$generate_random_seed`](#generate_random_seed)
   - [`$init_random_seed`](#init_random_seed)
@@ -1042,6 +1047,58 @@ u32 $millis();
 Gets the time elapsed in milliseconds since program start.
 
 **Returns:** The time in milliseconds since program start.
+
+
+# Communication
+
+## `$i2c_begin`
+
+```c
+void $i2c_begin();
+```
+
+Initialize I2C hardware.
+
+## `$i2c_handshake`
+
+```c
+u8 $i2c_handshake(u8 num_players);
+```
+
+Perform a handshake to identify players on the I2C bus.
+
+| Parameter | Description |
+| :-- | :-- |
+| **num_players** | The number of players expected to participate in the handshake. |
+
+**Returns:** The unique ID assigned to this player (0-254), or 255 if the handshake failed.
+
+## `$i2c_read`
+
+```c
+u8 $i2c_read(u8 addr);
+```
+
+Read a byte of data from a specific I2C address.
+
+| Parameter | Description |
+| :-- | :-- |
+| **addr** | The 7-bit I2C address of the sender. |
+
+**Returns:** The byte of data received from the specified address.
+
+## `$i2c_write`
+
+```c
+void $i2c_write(u8 addr, u8 data);
+```
+
+Send a byte of data to a specific I2C address.
+
+| Parameter | Description |
+| :-- | :-- |
+| **addr** | The 7-bit I2C address of the recipient. |
+| **data** | The byte of data to send. |
 
 
 # Random
