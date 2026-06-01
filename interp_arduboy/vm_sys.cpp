@@ -3851,15 +3851,20 @@ end:
 #endif
 }
 
-static volatile uint8_t i2c_remote_data = 0;
-static uint8_t i2c_local_data = 0;
+static uint8_t i2c_remote_buf[32];
+static volatile uint8_t i2c_remote_size = 0;
+static uint8_t i2c_local_buf[32];
+static uint8_t i2c_local_size = 0;
 
 static void i2c_on_request() {
-    I2C::reply(&i2c_local_data, 1);
+    if (i2c_local_size > 0)
+        I2C::reply(i2c_local_buf, i2c_local_size);
 }
 
 static void i2c_on_receive(const uint8_t *buffer, uint8_t size) {
-    if (size > 0) i2c_remote_data = buffer[0];
+    if (size > 32) size = 32;
+    for (uint8_t i = 0; i < size; ++i) i2c_remote_buf[i] = buffer[i];
+    i2c_remote_size = size;
 }
 
 static void sys_i2c_begin()
@@ -3881,14 +3886,13 @@ static void sys_i2c_handshake()
 static void sys_i2c_write()
 {
     auto ptr = vm_pop_begin();
-    uint8_t data = vm_pop<uint8_t>(ptr);
     uint8_t addr = vm_pop<uint8_t>(ptr);
+    uint8_t data = vm_pop<uint8_t>(ptr);
     vm_pop_end(ptr);
     
-    i2c_local_data = data; // Always update local data for slave replies
-    
-    // Only write if we are not targeting ourselves. If addr is 0, we can skip or assume it's a broadcast.
-    // In our logic, Master (ID 0) will write to Slave (ID 1, address 9).
+    i2c_local_buf[0] = data;
+    if (i2c_local_size == 0) i2c_local_size = 1;
+
     I2C::write(addr, &data, 1, true);
 }
 
@@ -3898,17 +3902,76 @@ static void sys_i2c_read()
     uint8_t addr = vm_pop<uint8_t>(ptr);
     vm_pop_end(ptr);
     
-    // Master (ID 0) reads from Slave (ID 1, address 9)
-    // Slave (ID 1) just returns what it received via onReceive.
-    if (addr != 0) {
-        uint8_t data = 0;
-        I2C::read(addr, &data, 1);
-        if (I2C::error() == TW_SUCCESS) {
-            i2c_remote_data = data;
-        }
+    uint8_t data = 0;
+    I2C::read(addr, &data, 1);
+    if (I2C::error() == TW_SUCCESS) {
+        i2c_remote_buf[0] = data;
+        i2c_remote_size = 1;
     }
     
-    vm_push((uint8_t)i2c_remote_data);
+    vm_push((uint8_t)i2c_remote_buf[0]);
+}
+
+static void sys_i2c_write_buf()
+{
+    auto ptr = vm_pop_begin();
+    uint8_t addr = vm_pop<uint8_t>(ptr);
+    uint16_t n = vm_pop<uint16_t>(ptr);
+    uint16_t b = vm_pop<uint16_t>(ptr);
+    vm_pop_end(ptr);
+    
+    if (n > 0)
+    {
+        I2C::write(addr, (void*)b, (uint8_t)n, true);
+    }
+}
+
+static void sys_i2c_read_buf()
+{
+    auto ptr = vm_pop_begin();
+    uint8_t addr = vm_pop<uint8_t>(ptr);
+    uint16_t n = vm_pop<uint16_t>(ptr);
+    uint16_t b = vm_pop<uint16_t>(ptr);
+    vm_pop_end(ptr);
+    
+    if (n > 0)
+    {
+        I2C::read(addr, (void*)b, (uint8_t)n);
+    }
+}
+
+static void sys_i2c_set_local()
+{
+    auto ptr = vm_pop_begin();
+    uint16_t n = vm_pop<uint16_t>(ptr);
+    uint16_t b = vm_pop<uint16_t>(ptr);
+    vm_pop_end(ptr);
+    
+    if (n > 32) n = 32;
+    i2c_local_size = (uint8_t)n;
+    memcpy(i2c_local_buf, (void*)b, n);
+}
+
+static void sys_i2c_get_remote()
+{
+    auto ptr = vm_pop_begin();
+    uint16_t n = vm_pop<uint16_t>(ptr);
+    uint16_t b = vm_pop<uint16_t>(ptr);
+    vm_pop_end(ptr);
+    
+    uint8_t size = i2c_remote_size;
+    if (n > size) n = size;
+    memcpy((void*)b, i2c_remote_buf, n);
+}
+
+static void sys_i2c_connected()
+{
+    auto ptr = vm_pop_begin();
+    uint8_t addr = vm_pop<uint8_t>(ptr);
+    vm_pop_end(ptr);
+    
+    I2C::write(addr, nullptr, 0, true);
+    vm_push((uint8_t)(I2C::error() == TW_SUCCESS));
 }
 
 sys_func_t const SYS_FUNCS[] PROGMEM =
@@ -4035,5 +4098,15 @@ sys_func_t const SYS_FUNCS[] PROGMEM =
     sys_random,
     sys_random_range,
     sys_tilemap_get,
+
+    sys_i2c_begin,
+    sys_i2c_handshake,
+    sys_i2c_write,
+    sys_i2c_read,
+    sys_i2c_write_buf,
+    sys_i2c_read_buf,
+    sys_i2c_set_local,
+    sys_i2c_get_remote,
+    sys_i2c_connected,
 
 };

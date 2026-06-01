@@ -20,6 +20,8 @@ std::unordered_map<std::string, std::vector<std::string>> const sys_overloads =
     { "strcmp", { "strcmp_P", "strcmp_PP" }},
     { "strcpy", { "strcpy_P" }},
     { "strcat", { "strcat_P" }},
+    { "i2c_write", { "i2c_write", "i2c_write_buf" }},
+    { "i2c_read", { "i2c_read", "i2c_read_buf" }},
 };
 
 std::unordered_map<std::string, sysfunc_t> const sys_names =
@@ -117,6 +119,11 @@ std::unordered_map<std::string, sysfunc_t> const sys_names =
     { "i2c_handshake",         SYS_I2C_HANDSHAKE         },
     { "i2c_write",             SYS_I2C_WRITE             },
     { "i2c_read",              SYS_I2C_READ              },
+    { "i2c_write_buf",         SYS_I2C_WRITE_BUF         },
+    { "i2c_read_buf",          SYS_I2C_READ_BUF          },
+    { "i2c_set_local",         SYS_I2C_SET_LOCAL         },
+    { "i2c_get_remote",        SYS_I2C_GET_REMOTE        },
+    { "i2c_connected",         SYS_I2C_CONNECTED         },
 
 };
 
@@ -534,6 +541,22 @@ std::unordered_map<sysfunc_t, sysfunc_info_t> const sysfunc_decls
         "Read a byte of data from a specific I2C address.", {
         "The 7-bit I2C address of the sender." },
         "The byte of data received from the specified address." } },
+    { SYS_I2C_WRITE_BUF,        { { TYPE_VOID,  { TYPE_U8, TYPE_BYTE_AREF }, { "addr", "data" } }, CAT_COMMUNICATION,
+        "Send multiple bytes of data to a specific I2C address.", {
+        "The 7-bit I2C address of the recipient.",
+        "The data to send." } } },
+    { SYS_I2C_READ_BUF,         { { TYPE_VOID,  { TYPE_U8, TYPE_BYTE_AREF }, { "addr", "data" } }, CAT_COMMUNICATION,
+        "Read multiple bytes of data from a specific I2C address.", {
+        "The 7-bit I2C address of the sender.",
+        "The buffer in which to store the received data." } } },
+    { SYS_I2C_SET_LOCAL,        { { TYPE_VOID,  { TYPE_BYTE_AREF }, { "data" } }, CAT_COMMUNICATION,
+        "Set the local data buffer to be served when another device reads from this device." } },
+    { SYS_I2C_GET_REMOTE,       { { TYPE_VOID,  { TYPE_BYTE_AREF }, { "data" } }, CAT_COMMUNICATION,
+        "Get the data last written to this device by another device." } },
+    { SYS_I2C_CONNECTED,        { { TYPE_BOOL,  { TYPE_U8 }, { "addr" } }, CAT_COMMUNICATION,
+        "Check if a device is connected at the specified I2C address.", {
+        "The 7-bit I2C address to check." },
+        "True if the device responded, false otherwise." } },
     { SYS_RANDOM_RANGE,         { { TYPE_U32,   { TYPE_U32, TYPE_U32 }, { "lo", "hi" } }, CAT_RANDOM,
         "Get a 32-bit random value generated from the internal random seed "
         "constrained to fall within a given range. "

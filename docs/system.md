@@ -76,9 +76,10 @@
   - [`$millis`](#millis)
 - [Communication](#communication)
   - [`$i2c_begin`](#i2c_begin)
+  - [`$i2c_connected`](#i2c_connected)
+  - [`$i2c_get_remote`](#i2c_get_remote)
   - [`$i2c_handshake`](#i2c_handshake)
-  - [`$i2c_read`](#i2c_read)
-  - [`$i2c_write`](#i2c_write)
+  - [`$i2c_set_local`](#i2c_set_local)
 - [Random](#random)
   - [`$generate_random_seed`](#generate_random_seed)
   - [`$init_random_seed`](#init_random_seed)
@@ -1059,6 +1060,28 @@ void $i2c_begin();
 
 Initialize I2C hardware.
 
+## `$i2c_connected`
+
+```c
+bool $i2c_connected(u8 addr);
+```
+
+Check if a device is connected at the specified I2C address.
+
+| Parameter | Description |
+| :-- | :-- |
+| **addr** | The 7-bit I2C address to check. |
+
+**Returns:** True if the device responded, false otherwise.
+
+## `$i2c_get_remote`
+
+```c
+void $i2c_get_remote(byte[]& data);
+```
+
+Get the data last written to this device by another device.
+
 ## `$i2c_handshake`
 
 ```c
@@ -1073,32 +1096,13 @@ Perform a handshake to identify players on the I2C bus.
 
 **Returns:** The unique ID assigned to this player (0-254), or 255 if the handshake failed.
 
-## `$i2c_read`
+## `$i2c_set_local`
 
 ```c
-u8 $i2c_read(u8 addr);
+void $i2c_set_local(byte[]& data);
 ```
 
-Read a byte of data from a specific I2C address.
-
-| Parameter | Description |
-| :-- | :-- |
-| **addr** | The 7-bit I2C address of the sender. |
-
-**Returns:** The byte of data received from the specified address.
-
-## `$i2c_write`
-
-```c
-void $i2c_write(u8 addr, u8 data);
-```
-
-Send a byte of data to a specific I2C address.
-
-| Parameter | Description |
-| :-- | :-- |
-| **addr** | The 7-bit I2C address of the recipient. |
-| **data** | The byte of data to send. |
+Set the local data buffer to be served when another device reads from this device.
 
 
 # Random

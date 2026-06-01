@@ -69,3 +69,4 @@ ternary                                 6336
 tilemap                                 6378
 uar_slice                               1155
 unions                                   200
+i2c                                       50

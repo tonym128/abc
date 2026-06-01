@@ -1,0 +1,44 @@
+// I2C State Sync Example
+// This example demonstrates how to sync player positions between two Arduboys.
+
+struct Player {
+    u16 x, y;
+    u8 id;
+};
+
+Player other;
+Player me;
+u8 my_id;
+
+void main() {
+    $set_frame_rate(60);
+    $i2c_begin();
+    
+    // Automatic ID assignment: returns 0 for first player, 1 for second, etc.
+    my_id = $i2c_handshake(2);
+    
+    me.x = 64;
+    me.y = 32;
+    me.id = my_id;
+    $i2c_set_local(me);
+    
+    while (true) {
+        if ($pressed(LEFT_BUTTON))  me.x -= 1;
+        if ($pressed(RIGHT_BUTTON)) me.x += 1;
+        if ($pressed(UP_BUTTON))    me.y -= 1;
+        if ($pressed(DOWN_BUTTON))  me.y += 1;
+        
+        // Share our position with others
+        $i2c_set_local(me);
+        
+        // Read the other player's position (address 8 for ID 0, 9 for ID 1)
+        u8 other_id = 1 - my_id;
+        u8 other_addr = 8 + other_id;
+        $i2c_read(other_addr, other);
+        
+        $draw_rect(me.x - 2, me.y - 2, 5, 5, WHITE);
+        $draw_rect(other.x - 2, other.y - 2, 5, 5, WHITE);
+        
+        $display();
+    }
+}

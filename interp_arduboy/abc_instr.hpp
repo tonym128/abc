@@ -96,6 +96,11 @@ enum sysfunc_t : uint8_t
     SYS_I2C_HANDSHAKE,
     SYS_I2C_WRITE,
     SYS_I2C_READ,
+    SYS_I2C_WRITE_BUF,
+    SYS_I2C_READ_BUF,
+    SYS_I2C_SET_LOCAL,
+    SYS_I2C_GET_REMOTE,
+    SYS_I2C_CONNECTED,
 
     SYS_NUM_REAL,
 

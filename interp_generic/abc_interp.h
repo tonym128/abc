@@ -65,6 +65,14 @@ typedef struct abc_host_t
 
     /* Store interp->saved into persistent memory. */
     void    (*save)         (void* user, abc_interp_t const* interp);
+
+    /* I2C functions */
+    void    (*i2c_begin)    (void* user);
+    uint8_t (*i2c_handshake)(void* user, uint8_t num_players);
+    void    (*i2c_write)    (void* user, uint8_t addr, uint8_t data);
+    uint8_t (*i2c_read)     (void* user, uint8_t addr);
+    void    (*i2c_write_buf)(void* user, uint8_t addr, uint8_t const* data, uint8_t size);
+    uint8_t (*i2c_read_buf) (void* user, uint8_t addr, uint8_t* data, uint8_t size);
     
     void* user;
     
@@ -127,6 +135,12 @@ struct abc_interp_t
     int8_t   batch_py;
     int8_t   batch_dx;
     int8_t   batch_dy;
+
+    /* I2C state */
+    uint8_t  i2c_local_buf[32];
+    uint8_t  i2c_local_size;
+    uint8_t  i2c_remote_buf[32];
+    uint8_t  i2c_remote_size;
     
 };
 
