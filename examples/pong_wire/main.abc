@@ -1,0 +1,185 @@
+#title "ABC Pong Wire"
+#author "Gemini CLI"
+
+constexpr i8 TARGET_ADDRESS = 0x10;
+
+constexpr u8 PADDLE_WIDTH = 4;
+constexpr u8 PADDLE_HEIGHT = 16;
+
+constexpr u8 BALL_WIDTH = 4;
+constexpr u8 BALL_HEIGHT = 4;
+
+constexpr u8 FONT_WIDTH = 5;
+constexpr u8 SCORE_CENTER_OFFSET = 5;
+
+enum Role {
+    CONTROLLER,
+    TARGET,
+    NONE
+};
+
+Role role = NONE;
+
+i16[2] player_y = { (64 - PADDLE_HEIGHT) / 2, (64 - PADDLE_HEIGHT) / 2 };
+i8[2] player_score = { 0, 0 };
+bool[2] player_a_button = { false, false };
+
+i16 ball_x = PADDLE_WIDTH;
+i16 ball_y = (64 - PADDLE_HEIGHT) / 2 + (PADDLE_HEIGHT - BALL_HEIGHT) / 2;
+
+i16 ball_dx = 0;
+i16 ball_dy = 0;
+
+Role ball_start_side = CONTROLLER;
+
+bool handshake_completed = false;
+
+// target callbacks
+void data_receive(u8 bytes) {
+    while ($wire_available() > 0) {
+        player_y[CONTROLLER] = i16($wire_read());
+        ball_x = i16($wire_read());
+        ball_y = i16($wire_read());
+        player_score[CONTROLLER] = i8($wire_read());
+        player_score[TARGET] = i8($wire_read());
+    }
+}
+
+void data_request() {
+    $wire_write(u8(player_y[role]));
+    $wire_write(u8($pressed(A_BUTTON)));
+}
+
+void handshake_request() {
+    $wire_write(1);
+    handshake_completed = true;
+}
+
+void main() {
+    $set_frame_rate(60);
+
+    // Initial display
+    $draw_text(0, 0, "Pong Wire\nWaiting for other\nplayer...");
+    $display();
+
+    // start auto handshake
+    $wire_begin();
+    u8 n = $wire_request_from(TARGET_ADDRESS, 1);
+    if (n > 0) {
+        role = CONTROLLER;
+        handshake_completed = ($wire_read() != 0);
+    } else {
+        role = TARGET;
+        $wire_begin_address(TARGET_ADDRESS);
+        $wire_on_request(handshake_request);
+    }
+
+    while (!handshake_completed) {
+        $wire_poll();
+        $idle();
+    }
+    
+    // setup callbacks
+    if (role == TARGET) {
+        $wire_on_request(data_request);
+        $wire_on_receive(data_receive);
+    }
+
+    // game loop
+    while(true) {
+        // clear display and check callbacks are handled by $display()
+        // but since we want to handle callbacks before logic, we call $wire_poll()
+        $wire_poll();
+
+        // update our y
+        i16 dy = i16($pressed(DOWN_BUTTON)) - i16($pressed(UP_BUTTON));
+        player_y[role] += dy;
+        
+        // fence y
+        if (player_y[role] < 0) player_y[role] = 0;
+        if (player_y[role] > 64 - PADDLE_HEIGHT) player_y[role] = 64 - PADDLE_HEIGHT;
+
+        if (role == CONTROLLER) {
+            // get data from target
+            u8 n_req = $wire_request_from(TARGET_ADDRESS, 2);
+            if (n_req >= 2) {
+                player_y[TARGET] = i16($wire_read());
+                player_a_button[TARGET] = ($wire_read() != 0);
+            }
+            player_a_button[CONTROLLER] = $pressed(A_BUTTON);
+
+            // move ball if on paddle
+            if (ball_dx == 0 && ball_dy == 0) {
+                ball_y = player_y[ball_start_side] + (PADDLE_HEIGHT - BALL_HEIGHT) / 2;
+                if (player_a_button[ball_start_side]) {
+                    if (ball_start_side == CONTROLLER) {
+                        ball_dx = 1;
+                    } else {
+                        ball_dx = -1;
+                    }
+                    ball_dy = 1;
+                }
+            }
+            // update ball
+            ball_x += ball_dx;
+            ball_y += ball_dy;
+            
+            // check if ball goes off left or right side of the screen 
+            if (ball_x < 0 || ball_x > 128 - BALL_WIDTH) {
+                if (ball_dx > 0) {
+                    player_score[CONTROLLER]++;
+                    ball_start_side = TARGET;
+                    ball_x = 128 - BALL_WIDTH - PADDLE_WIDTH;
+                } else {
+                    player_score[TARGET]++;
+                    ball_start_side = CONTROLLER;
+                    ball_x = PADDLE_WIDTH;
+                }
+                ball_dx = 0;
+                ball_dy = 0;
+                ball_y = player_y[ball_start_side] + (PADDLE_HEIGHT - BALL_HEIGHT) / 2;
+            }
+            
+            // collision
+            // player 0 (controller) paddle
+            if (ball_x < i16(PADDLE_WIDTH) && 
+                ball_y + i16(BALL_HEIGHT) > player_y[CONTROLLER] && 
+                ball_y < player_y[CONTROLLER] + i16(PADDLE_HEIGHT)) {
+                ball_x = i16(PADDLE_WIDTH);
+                ball_dx = -ball_dx;
+            }
+            // player 1 (target) paddle
+            if (ball_x + i16(BALL_WIDTH) > 128 - i16(PADDLE_WIDTH) && 
+                ball_y + i16(BALL_HEIGHT) > player_y[TARGET] && 
+                ball_y < player_y[TARGET] + i16(PADDLE_HEIGHT) ) {
+                ball_x = 128 - i16(BALL_WIDTH) - i16(PADDLE_WIDTH);
+                ball_dx = -ball_dx;
+            }
+
+            // bounce off top/bottom
+            if (ball_y < 0 || ball_y > 64 - BALL_HEIGHT) {
+                ball_dy = -ball_dy;
+            }
+
+            // send data to target
+            $wire_begin_transmission(TARGET_ADDRESS);
+            $wire_write(u8(player_y[CONTROLLER]));
+            $wire_write(u8(ball_x));
+            $wire_write(u8(ball_y));
+            $wire_write(u8(player_score[CONTROLLER]));
+            $wire_write(u8(player_score[TARGET]));
+            $wire_end_transmission();
+        }
+
+        // draw
+        $draw_filled_rect(0, player_y[CONTROLLER], PADDLE_WIDTH, PADDLE_HEIGHT, WHITE);
+        $draw_filled_rect(128 - PADDLE_WIDTH, player_y[TARGET], PADDLE_WIDTH, PADDLE_HEIGHT, WHITE);
+        $draw_filled_rect(ball_x, ball_y, BALL_WIDTH, BALL_HEIGHT, WHITE);
+
+        // draw scores
+        $draw_textf(128 / 2 - FONT_WIDTH - SCORE_CENTER_OFFSET, 0, "%d", i32(player_score[CONTROLLER]));
+        $draw_textf(128 / 2 + SCORE_CENTER_OFFSET, 0, "%d", i32(player_score[TARGET]));
+
+        $display();
+    }
+}

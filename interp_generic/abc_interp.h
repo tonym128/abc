@@ -65,6 +65,15 @@ typedef struct abc_host_t
 
     /* Store interp->saved into persistent memory. */
     void    (*save)         (void* user, abc_interp_t const* interp);
+
+    /* Wire (I2C) support */
+    void    (*wire_begin)            (void* user, uint8_t addr);
+    uint8_t (*wire_request_from)     (void* user, uint8_t addr, uint8_t count);
+    uint8_t (*wire_available)        (void* user);
+    uint8_t (*wire_read)             (void* user);
+    void    (*wire_write)            (void* user, uint8_t value);
+    void    (*wire_begin_transmission)(void* user, uint8_t addr);
+    uint8_t (*wire_end_transmission)  (void* user);
     
     void* user;
     
@@ -127,6 +136,12 @@ struct abc_interp_t
     int8_t   batch_py;
     int8_t   batch_dx;
     int8_t   batch_dy;
+
+    uint32_t wire_on_receive_pc;
+    uint32_t wire_on_request_pc;
+    uint8_t  wire_on_receive_bytes;
+    uint8_t  wire_on_receive_pending;
+    uint8_t  wire_on_request_pending;
     
 };
 

@@ -113,6 +113,17 @@ std::unordered_map<std::string, sysfunc_t> const sys_names =
     { "set_random_seed",       SYS_SET_RANDOM_SEED       },
     { "random",                SYS_RANDOM                },
     { "random_range",          SYS_RANDOM_RANGE          },
+    { "wire_begin",            SYS_WIRE_BEGIN            },
+    { "wire_begin_address",    SYS_WIRE_BEGIN_ADDR       },
+    { "wire_request_from",     SYS_WIRE_REQUEST_FROM     },
+    { "wire_available",        SYS_WIRE_AVAILABLE        },
+    { "wire_read",             SYS_WIRE_READ             },
+    { "wire_write",            SYS_WIRE_WRITE            },
+    { "wire_on_receive",       SYS_WIRE_ON_RECEIVE       },
+    { "wire_on_request",       SYS_WIRE_ON_REQUEST       },
+    { "wire_begin_transmission", SYS_WIRE_BEGIN_TRANSMISSION },
+    { "wire_end_transmission", SYS_WIRE_END_TRANSMISSION },
+    { "wire_poll",             SYS_WIRE_POLL             },
 };
 
 static std::string const CAT_GRAPHICS = "Graphics";
@@ -123,6 +134,7 @@ static std::string const CAT_STRINGS = "Strings";
 static std::string const CAT_UTILITY = "Utility";
 static std::string const CAT_RANDOM = "Random";
 static std::string const CAT_SAVELOAD = "Save/Load";
+static std::string const CAT_WIRE = "Wire";
 
 std::vector<std::string> const sysfunc_cats =
 {
@@ -134,6 +146,7 @@ std::vector<std::string> const sysfunc_cats =
     CAT_UTILITY,
     CAT_RANDOM,
     CAT_SAVELOAD,
+    CAT_WIRE,
 };
 
 static std::string const HELP_FORMAT_STR =
@@ -521,6 +534,41 @@ std::unordered_map<sysfunc_t, sysfunc_info_t> const sysfunc_decls
         "The upper bound of the constrained range, inclusive." },
         "A 32-bit random value generated from the internal random seed "
         "constrained to fall within the given range." } },
+    { SYS_WIRE_BEGIN,           { { TYPE_VOID,  { }, { } }, CAT_WIRE,
+        "Initialize the Wire library and join the I2C bus as a controller." } },
+    { SYS_WIRE_BEGIN_ADDR,      { { TYPE_VOID,  { TYPE_U8 }, { "address" } }, CAT_WIRE,
+        "Initialize the Wire library and join the I2C bus as a target.", {
+        "The 7-bit target address." } } },
+    { SYS_WIRE_REQUEST_FROM,    { { TYPE_U8,    { TYPE_U8, TYPE_U8 }, { "address", "count" } }, CAT_WIRE,
+        "Used by the controller to request bytes from a target device.", {
+        "The 7-bit address of the device to request bytes from.",
+        "The number of bytes to request." },
+        "The number of bytes returned from the target device." } },
+    { SYS_WIRE_AVAILABLE,       { { TYPE_U8,    { }, { } }, CAT_WIRE,
+        "Returns the number of bytes available for retrieval with `$wire_read`.", {},
+        "The number of bytes available." } },
+    { SYS_WIRE_READ,            { { TYPE_U8,    { }, { } }, CAT_WIRE,
+        "Reads a byte that was transmitted from a target device to a controller after a call to `$wire_request_from` "
+        "or was transmitted from a controller to a target.", {},
+        "The next byte received." } },
+    { SYS_WIRE_WRITE,           { { TYPE_VOID,  { TYPE_U8 }, { "value" } }, CAT_WIRE,
+        "Writes data from a target device in response to a request from a controller, "
+        "or queues bytes for transmission from a controller to a target device.", {
+        "The byte to send." } } },
+    { SYS_WIRE_ON_RECEIVE,      { { TYPE_VOID,  { TYPE_FUNC_VOID_U8 }, { "callback" } }, CAT_WIRE,
+        "Registers a function to be called when a target device receives a transmission from a controller.", {
+        "The function to be called. It should take a single `u8` argument (the number of bytes received) and return `void`." } } },
+    { SYS_WIRE_ON_REQUEST,      { { TYPE_VOID,  { TYPE_FUNC_VOID_VOID }, { "callback" } }, CAT_WIRE,
+        "Registers a function to be called when a controller requests data from this target device.", {
+        "The function to be called. It should take no arguments and return `void`." } } },
+    { SYS_WIRE_BEGIN_TRANSMISSION, { { TYPE_VOID, { TYPE_U8 }, { "address" } }, CAT_WIRE,
+        "Begin a transmission to the I2C target device with the given address.", {
+        "The 7-bit address of the device to transmit to." } } },
+    { SYS_WIRE_END_TRANSMISSION, { { TYPE_U8,   { }, { } }, CAT_WIRE,
+        "Ends a transmission to a target device that was begun by `$wire_begin_transmission` and transmits the bytes that were queued by `$wire_write`.", {},
+        "A status code: 0: success, 1: data too long, 2: NACK on address, 3: NACK on data, 4: other error." } },
+    { SYS_WIRE_POLL,            { { TYPE_VOID,  { }, { } }, CAT_WIRE,
+        "Check for pending I2C callbacks and execute them. This should be called regularly in the main loop if callbacks are used." } },
 };
 
 }

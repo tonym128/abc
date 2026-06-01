@@ -5,6 +5,7 @@
 #include <Arduboy2.h>
 #include <Arduboy2Audio.h>
 #include <ArduboyFX.h>
+#include <Wire.h>
 
 #include "SpritesABC.hpp"
 
@@ -431,6 +432,7 @@ void wait_for_frame_timing()
 #if ABC_SHADES == 2
 static void sys_display()
 {
+    sys_wire_poll();
     FX::disable();
     FX::display(true);
     wait_for_frame_timing();
@@ -441,6 +443,7 @@ static void sys_display()
 #if ABC_SHADES == 2
 static void sys_display_noclear()
 {
+    sys_wire_poll();
     FX::disable();
     FX::display(false);
     wait_for_frame_timing();
@@ -3550,6 +3553,101 @@ static void sys_random_range()
     vm_pop_end(ptr);
 }
 
+static void sys_wire_begin() { Wire.begin(); }
+static void sys_wire_begin_addr()
+{
+    auto ptr = vm_pop_begin();
+    uint8_t addr = vm_pop<uint8_t>(ptr);
+    vm_pop_end(ptr);
+    Wire.begin(addr);
+}
+static void sys_wire_request_from()
+{
+    auto ptr = vm_pop_begin();
+    uint8_t count = vm_pop<uint8_t>(ptr);
+    uint8_t addr = vm_pop<uint8_t>(ptr);
+    vm_pop_end(ptr);
+    vm_push((uint8_t)Wire.requestFrom(addr, count));
+}
+static void sys_wire_available() { vm_push((uint8_t)Wire.available()); }
+static void sys_wire_read() { vm_push((uint8_t)Wire.read()); }
+static void sys_wire_write()
+{
+    auto ptr = vm_pop_begin();
+    uint8_t val = vm_pop<uint8_t>(ptr);
+    vm_pop_end(ptr);
+    Wire.write(val);
+}
+
+static uint24_t wire_on_receive_pc = 0;
+static uint24_t wire_on_request_pc = 0;
+static uint8_t wire_on_receive_bytes = 0;
+static volatile uint8_t wire_on_receive_pending = 0;
+static volatile uint8_t wire_on_request_pending = 0;
+
+static void sys_wire_on_receive()
+{
+    auto ptr = vm_pop_begin();
+    wire_on_receive_pc = vm_pop<uint24_t>(ptr);
+    vm_pop_end(ptr);
+    Wire.onReceive([](int n) {
+        wire_on_receive_bytes = (uint8_t)n;
+        wire_on_receive_pending = 1;
+    });
+}
+static void sys_wire_on_request()
+{
+    auto ptr = vm_pop_begin();
+    wire_on_request_pc = vm_pop<uint24_t>(ptr);
+    vm_pop_end(ptr);
+    Wire.onRequest([]() {
+        wire_on_request_pending = 1;
+    });
+}
+static void sys_wire_begin_transmission()
+{
+    auto ptr = vm_pop_begin();
+    uint8_t addr = vm_pop<uint8_t>(ptr);
+    vm_pop_end(ptr);
+    Wire.beginTransmission(addr);
+}
+static void sys_wire_end_transmission() { vm_push((uint8_t)Wire.endTransmission()); }
+
+static void sys_wire_poll()
+{
+    if (wire_on_request_pending && wire_on_request_pc != 0)
+    {
+        wire_on_request_pending = 0;
+        if (ards::vm.csp >= ards::MAX_CALLS * 3)
+        {
+            ards::vm.error = ards::ERR_CST;
+            return;
+        }
+        uint8_t* calls = (uint8_t*)ards::vm.calls;
+        calls[ards::vm.csp++] = (uint8_t)(ards::vm.pc >> 0);
+        calls[ards::vm.csp++] = (uint8_t)(ards::vm.pc >> 8);
+        calls[ards::vm.csp++] = (uint8_t)(ards::vm.pc >> 16);
+        ards::vm.pc = wire_on_request_pc;
+        seek_to_pc();
+    }
+    else if (wire_on_receive_pending && wire_on_receive_pc != 0)
+    {
+        wire_on_receive_pending = 0;
+        vm_push(wire_on_receive_bytes);
+        if (ards::vm.csp >= ards::MAX_CALLS * 3)
+        {
+            ards::vm.error = ards::ERR_CST;
+            return;
+        }
+        uint8_t* calls = (uint8_t*)ards::vm.calls;
+        calls[ards::vm.csp++] = (uint8_t)(ards::vm.pc >> 0);
+        calls[ards::vm.csp++] = (uint8_t)(ards::vm.pc >> 8);
+        calls[ards::vm.csp++] = (uint8_t)(ards::vm.pc >> 16);
+        ards::vm.pc = wire_on_receive_pc;
+        seek_to_pc();
+    }
+}
+
 __attribute__((naked))
 static void sys_set_text_font()
 {
@@ -3973,5 +4071,15 @@ sys_func_t const SYS_FUNCS[] PROGMEM =
     sys_random,
     sys_random_range,
     sys_tilemap_get,
-
+    sys_wire_begin,
+    sys_wire_begin_addr,
+    sys_wire_request_from,
+    sys_wire_available,
+    sys_wire_read,
+    sys_wire_write,
+    sys_wire_on_receive,
+    sys_wire_on_request,
+    sys_wire_begin_transmission,
+    sys_wire_end_transmission,
+    sys_wire_poll,
 };

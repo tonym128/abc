@@ -10,8 +10,41 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_main.h>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma comment(lib, "ws2_32.lib")
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#endif
+
 static abc_interp_t interp;
 static abc_host_t host;
+
+#ifdef _WIN32
+static SOCKET wire_sock = INVALID_SOCKET;
+#else
+static int wire_sock = -1;
+#endif
+static struct sockaddr_in wire_addr_me;
+static struct sockaddr_in wire_addr_other;
+static uint8_t wire_rx_buf[256];
+static uint8_t wire_rx_len = 0;
+static uint8_t wire_rx_ptr = 0;
+static uint8_t wire_tx_buf[256];
+static uint8_t wire_tx_len = 0;
+static uint8_t wire_tx_addr = 0;
+
+enum {
+    WIRE_PKT_DATA = 1,
+    WIRE_PKT_REQ  = 2,
+    WIRE_PKT_RES  = 3,
+};
 
 static void* data;
 static size_t data_size;
@@ -69,12 +102,146 @@ static uint32_t host_rand_seed(void* user)
     return (uint32_t)time(0);
 }
 
+static void host_wire_begin(void* user, uint8_t addr)
+{
+    (void)user; (void)addr;
+}
+
+static uint8_t host_wire_request_from(void* user, uint8_t addr, uint8_t count)
+{
+    (void)user; (void)addr;
+#ifdef _WIN32
+    if (wire_sock == INVALID_SOCKET) return 0;
+#else
+    if (wire_sock < 0) return 0;
+#endif
+    uint8_t pkt[2] = { WIRE_PKT_REQ, count };
+    sendto(wire_sock, (const char*)pkt, 2, 0, (struct sockaddr*)&wire_addr_other, sizeof(wire_addr_other));
+    
+    // synchronous wait for response (simple for local sim)
+    uint64_t start = SDL_GetTicks64();
+    while (SDL_GetTicks64() - start < 10)
+    {
+        uint8_t res[257];
+        struct sockaddr_in from;
+        socklen_t fromlen = sizeof(from);
+        int r = recvfrom(wire_sock, (char*)res, sizeof(res), 0, (struct sockaddr*)&from, &fromlen);
+        if (r > 1 && res[0] == WIRE_PKT_RES)
+        {
+            wire_rx_len = (uint8_t)(r - 1);
+            if (wire_rx_len > count) wire_rx_len = count;
+            memcpy(wire_rx_buf, res + 1, wire_rx_len);
+            wire_rx_ptr = 0;
+            return wire_rx_len;
+        }
+        SDL_Delay(1);
+    }
+    return 0;
+}
+
+static uint8_t host_wire_available(void* user)
+{
+    (void)user;
+    if (wire_rx_ptr < wire_rx_len) return wire_rx_len - wire_rx_ptr;
+    return 0;
+}
+
+static uint8_t host_wire_read(void* user)
+{
+    (void)user;
+    if (wire_rx_ptr < wire_rx_len) return wire_rx_buf[wire_rx_ptr++];
+    return 0;
+}
+
+static void host_wire_write(void* user, uint8_t value)
+{
+    (void)user;
+    if (wire_tx_len < 255) wire_tx_buf[wire_tx_len++] = value;
+}
+
+static void host_wire_begin_transmission(void* user, uint8_t addr)
+{
+    (void)user;
+    wire_tx_addr = addr;
+    wire_tx_len = 0;
+}
+
+static uint8_t host_wire_end_transmission(void* user)
+{
+    (void)user;
+#ifdef _WIN32
+    if (wire_sock == INVALID_SOCKET) return 4;
+#else
+    if (wire_sock < 0) return 4;
+#endif
+    uint8_t pkt[257];
+    pkt[0] = WIRE_PKT_DATA;
+    memcpy(pkt + 1, wire_tx_buf, wire_tx_len);
+    sendto(wire_sock, (const char*)pkt, wire_tx_len + 1, 0, (struct sockaddr*)&wire_addr_other, sizeof(wire_addr_other));
+    wire_tx_len = 0;
+    return 0;
+}
+
+static void network_poll()
+{
+#ifdef _WIN32
+    if (wire_sock == INVALID_SOCKET) return;
+#else
+    if (wire_sock < 0) return;
+#endif
+    while (true)
+    {
+        uint8_t res[257];
+        struct sockaddr_in from;
+        socklen_t fromlen = sizeof(from);
+        int r = recvfrom(wire_sock, (char*)res, sizeof(res), 0, (struct sockaddr*)&from, &fromlen);
+        if (r <= 0) break;
+
+        if (res[0] == WIRE_PKT_DATA)
+        {
+            wire_rx_len = (uint8_t)(r - 1);
+            memcpy(wire_rx_buf, res + 1, wire_rx_len);
+            wire_rx_ptr = 0;
+            interp.wire_on_receive_bytes = wire_rx_len;
+            interp.wire_on_receive_pending = 1;
+        }
+        else if (res[0] == WIRE_PKT_REQ)
+        {
+            interp.wire_on_request_pending = 1;
+        }
+    }
+}
+
 int main(int argc, char** argv)
 {
     if(argc < 2)
     {
-        fprintf(stderr, "Usage: %s <data.bin>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <data.bin> [local_port] [remote_port]\n", argv[0]);
         return 1;
+    }
+
+    if (argc >= 4)
+    {
+        int local_port = atoi(argv[2]);
+        int remote_port = atoi(argv[3]);
+#ifdef _WIN32
+        WSADATA wsa;
+        WSAStartup(MAKEWORD(2, 2), &wsa);
+        wire_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        u_long mode = 1;
+        ioctlsocket(wire_sock, FIONBIO, &mode);
+#else
+        wire_sock = socket(AF_INET, SOCK_DGRAM, 0);
+        fcntl(wire_sock, F_SETFL, O_NONBLOCK);
+#endif
+        wire_addr_me.sin_family = AF_INET;
+        wire_addr_me.sin_port = htons(local_port);
+        wire_addr_me.sin_addr.s_addr = INADDR_ANY;
+        bind(wire_sock, (struct sockaddr*)&wire_addr_me, sizeof(wire_addr_me));
+
+        wire_addr_other.sin_family = AF_INET;
+        wire_addr_other.sin_port = htons(remote_port);
+        wire_addr_other.sin_addr.s_addr = inet_addr("127.0.0.1");
     }
 
     {
@@ -118,6 +285,14 @@ int main(int argc, char** argv)
     host.millis = host_millis;
     host.buttons = host_buttons;
     host.rand_seed = host_rand_seed;
+
+    host.wire_begin = host_wire_begin;
+    host.wire_request_from = host_wire_request_from;
+    host.wire_available = host_wire_available;
+    host.wire_read = host_wire_read;
+    host.wire_write = host_wire_write;
+    host.wire_begin_transmission = host_wire_begin_transmission;
+    host.wire_end_transmission = host_wire_end_transmission;
 
     if(0 != SDL_Init(SDL_INIT_EVERYTHING))
     {
@@ -188,13 +363,33 @@ int main(int argc, char** argv)
         SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
         SDL_RenderClear(renderer);
 
+        network_poll();
+
         bool idle = false;
+        static uint8_t wire_req_csp = 0;
+        static bool wire_req_active = false;
         for(unsigned i = 0; !idle && i < 100; ++i)
         {
             SDL_LockAudioDevice(audio_device);
             for(unsigned j = 0; !idle && j < 1000; ++j)
             {
+                bool was_req = interp.wire_on_request_pending;
                 abc_result_t t = abc_run(&interp, &host);
+                if (was_req && !interp.wire_on_request_pending)
+                {
+                    wire_req_active = true;
+                    wire_req_csp = interp.csp;
+                }
+                if (wire_req_active && interp.csp < wire_req_csp)
+                {
+                    wire_req_active = false;
+                    // request handler finished, send response
+                    uint8_t pkt[257];
+                    pkt[0] = WIRE_PKT_RES;
+                    memcpy(pkt + 1, wire_tx_buf, wire_tx_len);
+                    sendto(wire_sock, (const char*)pkt, wire_tx_len + 1, 0, (struct sockaddr*)&wire_addr_other, sizeof(wire_addr_other));
+                    wire_tx_len = 0;
+                }
 #ifdef _MSC_VER
                 if(t == ABC_RESULT_ERROR)
                     __debugbreak();

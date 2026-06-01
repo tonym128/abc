@@ -437,6 +437,9 @@ const compiler_type_t TYPE_STR_PROG = TYPE_CHAR.with_prog().with_array_ref();
 const compiler_type_t TYPE_BYTE_AREF = TYPE_BYTE.with_array_ref();
 const compiler_type_t TYPE_BYTE_PROG_AREF = TYPE_BYTE.with_prog().with_array_ref();
 
+const compiler_type_t TYPE_FUNC_VOID_VOID = { 3, compiler_type_t::FUNC_REF, false, false, false, false, false, false, false, false, { TYPE_VOID } };
+const compiler_type_t TYPE_FUNC_VOID_U8 = { 3, compiler_type_t::FUNC_REF, false, false, false, false, false, false, false, false, { TYPE_VOID, TYPE_U8 } };
+
 compiler_type_t prim_type_for_dec(uint32_t x, bool is_signed);
 compiler_type_t prim_type_for_hex(uint32_t x, bool is_signed);
 

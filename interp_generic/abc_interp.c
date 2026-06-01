@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <math.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define FONT_HEADER_PER_CHAR 7
@@ -115,6 +116,17 @@ enum
     SYS_RANDOM,
     SYS_RANDOM_RANGE,
     SYS_TILEMAP_GET,
+    SYS_WIRE_BEGIN,
+    SYS_WIRE_BEGIN_ADDR,
+    SYS_WIRE_REQUEST_FROM,
+    SYS_WIRE_AVAILABLE,
+    SYS_WIRE_READ,
+    SYS_WIRE_WRITE,
+    SYS_WIRE_ON_RECEIVE,
+    SYS_WIRE_ON_REQUEST,
+    SYS_WIRE_BEGIN_TRANSMISSION,
+    SYS_WIRE_END_TRANSMISSION,
+    SYS_WIRE_POLL,
 };
 
 enum
@@ -1190,28 +1202,28 @@ static abc_result_t cfeq(abc_interp_t* interp)
     return push(interp, a == b ? 1 : 0);
 }
 
-static abc_result_t fadd(abc_interp_t* interp)
+static abc_result_t abc_fadd(abc_interp_t* interp)
 {
     float b = popf(interp);
     float a = popf(interp);
     return pushf(interp, a + b);
 }
 
-static abc_result_t fsub(abc_interp_t* interp)
+static abc_result_t abc_fsub(abc_interp_t* interp)
 {
     float b = popf(interp);
     float a = popf(interp);
     return pushf(interp, a - b);
 }
 
-static abc_result_t fmul(abc_interp_t* interp)
+static abc_result_t abc_fmul(abc_interp_t* interp)
 {
     float b = popf(interp);
     float a = popf(interp);
     return pushf(interp, a * b);
 }
 
-static abc_result_t fdiv(abc_interp_t* interp)
+static abc_result_t abc_fdiv(abc_interp_t* interp)
 {
     float b = popf(interp);
     float a = popf(interp);
@@ -3636,6 +3648,92 @@ static abc_result_t sys_random_range(abc_interp_t* interp)
     return push32(interp, t);
 }
 
+static abc_result_t sys_wire_poll(abc_interp_t* interp)
+{
+    if (interp->wire_on_request_pending && interp->wire_on_request_pc != 0)
+    {
+        interp->wire_on_request_pending = 0;
+        return call(interp, interp->wire_on_request_pc);
+    }
+    if (interp->wire_on_receive_pending && interp->wire_on_receive_pc != 0)
+    {
+        interp->wire_on_receive_pending = 0;
+        abc_result_t r = push(interp, interp->wire_on_receive_bytes);
+        if (r != ABC_RESULT_NORMAL) return r;
+        return call(interp, interp->wire_on_receive_pc);
+    }
+    return ABC_RESULT_NORMAL;
+}
+
+static abc_result_t sys_wire_begin(abc_interp_t* interp, abc_host_t const* h)
+{
+    if (h->wire_begin) h->wire_begin(h->user, 0);
+    return ABC_RESULT_NORMAL;
+}
+
+static abc_result_t sys_wire_begin_addr(abc_interp_t* interp, abc_host_t const* h)
+{
+    uint8_t addr = pop8(interp);
+    if (h->wire_begin) h->wire_begin(h->user, addr);
+    return ABC_RESULT_NORMAL;
+}
+
+static abc_result_t sys_wire_request_from(abc_interp_t* interp, abc_host_t const* h)
+{
+    uint8_t count = pop8(interp);
+    uint8_t addr = pop8(interp);
+    uint8_t r = 0;
+    if (h->wire_request_from) r = h->wire_request_from(h->user, addr, count);
+    return push(interp, r);
+}
+
+static abc_result_t sys_wire_available(abc_interp_t* interp, abc_host_t const* h)
+{
+    uint8_t r = 0;
+    if (h->wire_available) r = h->wire_available(h->user);
+    return push(interp, r);
+}
+
+static abc_result_t sys_wire_read(abc_interp_t* interp, abc_host_t const* h)
+{
+    uint8_t r = 0;
+    if (h->wire_read) r = h->wire_read(h->user);
+    return push(interp, r);
+}
+
+static abc_result_t sys_wire_write(abc_interp_t* interp, abc_host_t const* h)
+{
+    uint8_t value = pop8(interp);
+    if (h->wire_write) h->wire_write(h->user, value);
+    return ABC_RESULT_NORMAL;
+}
+
+static abc_result_t sys_wire_on_receive(abc_interp_t* interp)
+{
+    interp->wire_on_receive_pc = pop24(interp);
+    return ABC_RESULT_NORMAL;
+}
+
+static abc_result_t sys_wire_on_request(abc_interp_t* interp)
+{
+    interp->wire_on_request_pc = pop24(interp);
+    return ABC_RESULT_NORMAL;
+}
+
+static abc_result_t sys_wire_begin_transmission(abc_interp_t* interp, abc_host_t const* h)
+{
+    uint8_t addr = pop8(interp);
+    if (h->wire_begin_transmission) h->wire_begin_transmission(h->user, addr);
+    return ABC_RESULT_NORMAL;
+}
+
+static abc_result_t sys_wire_end_transmission(abc_interp_t* interp, abc_host_t const* h)
+{
+    uint8_t r = 0;
+    if (h->wire_end_transmission) r = h->wire_end_transmission(h->user);
+    return push(interp, r);
+}
+
 static abc_result_t sys(abc_interp_t* interp, abc_host_t const* h)
 {
     uint8_t sysnum = imm8(interp, h) >> 1;
@@ -3726,6 +3824,17 @@ static abc_result_t sys(abc_interp_t* interp, abc_host_t const* h)
     case SYS_RANDOM:                return sys_random(interp);
     case SYS_RANDOM_RANGE:          return sys_random_range(interp);
     case SYS_TILEMAP_GET:           return sys_tilemap_get(interp, h);
+    case SYS_WIRE_BEGIN:            return sys_wire_begin(interp, h);
+    case SYS_WIRE_BEGIN_ADDR:       return sys_wire_begin_addr(interp, h);
+    case SYS_WIRE_REQUEST_FROM:     return sys_wire_request_from(interp, h);
+    case SYS_WIRE_AVAILABLE:        return sys_wire_available(interp, h);
+    case SYS_WIRE_READ:             return sys_wire_read(interp, h);
+    case SYS_WIRE_WRITE:            return sys_wire_write(interp, h);
+    case SYS_WIRE_ON_RECEIVE:       return sys_wire_on_receive(interp);
+    case SYS_WIRE_ON_REQUEST:       return sys_wire_on_request(interp);
+    case SYS_WIRE_BEGIN_TRANSMISSION: return sys_wire_begin_transmission(interp, h);
+    case SYS_WIRE_END_TRANSMISSION: return sys_wire_end_transmission(interp, h);
+    case SYS_WIRE_POLL:             return sys_wire_poll(interp);
     default:
         RETURN_ERROR;
     }
@@ -3948,10 +4057,10 @@ abc_result_t abc_run(abc_interp_t* interp, abc_host_t const* h)
     case I_CFEQ:  return cfeq(interp);
     case I_CFLT:  return cflt(interp);
     case I_NOT:   return logical_not(interp);
-    case I_FADD:  return fadd(interp);
-    case I_FSUB:  return fsub(interp);
-    case I_FMUL:  return fmul(interp);
-    case I_FDIV:  return fdiv(interp);
+    case I_FADD:  return abc_fadd(interp);
+    case I_FSUB:  return abc_fsub(interp);
+    case I_FMUL:  return abc_fmul(interp);
+    case I_FDIV:  return abc_fdiv(interp);
     case I_F2I:   return f2i(interp);
     case I_F2U:   return f2u(interp);
     case I_I2F:   return i2f(interp);
