@@ -17,16 +17,8 @@ extern "C" void abc_memcpy(void* dst, void const* src, uint16_t n);
 
 void wait_for_frame_timing();
 
-static uint8_t* cmd_ptr;
-static uint8_t* batch_ptr; // for sprite/char batching (nullptr if no active batch)
-static uint8_t current_plane;
-
 // for sprite batching
 constexpr int8_t SPRITE_BATCH_ADV = 127;
-static int8_t batch_px; // previous coords
-static int8_t batch_py;
-static int8_t batch_dx; // difference in coords
-static int8_t batch_dy;
 
 inline uint8_t const* cmd0_end()
 {
@@ -40,7 +32,7 @@ inline uint8_t const* cmd1_end()
 
 inline bool cmd0_room(uint8_t n)
 {
-    return uintptr_t(cmd_ptr) < uintptr_t(cmd0_end() - n);
+    return uintptr_t(ards::vm.gs.cmd_ptr) < uintptr_t(cmd0_end() - n);
 }
 
 template<class T> inline uint8_t ld_inc(T*& p)
@@ -98,7 +90,7 @@ static inline uint8_t planeColor(uint8_t c)
 #if ABC_SHADES == 2
     return c;
 #else
-    return c > current_plane ? 1 : 0;
+    return c > ards::vm.gs.current_plane ? 1 : 0;
 #endif
 }
 
@@ -123,7 +115,7 @@ void shades_init()
     Arduboy2Base::LCDDataMode();
     FX::disableOLED();
 
-    cmd_ptr = &ards::vm.gs.buf0[0];
+    ards::vm.gs.cmd_ptr = &ards::vm.gs.buf0[0];
 }
 
 // clear: low byte is whether to clear, high byte is clear color
@@ -265,8 +257,8 @@ void shades_swap()
 {
     abc_memcpy(ards::vm.gs.buf1, ards::vm.gs.buf0, sizeof(ards::vm.gs.buf1));
     abc_memset(ards::vm.gs.buf0, SHADES_CMD_END, sizeof(ards::vm.gs.buf0));
-    cmd_ptr = &ards::vm.gs.buf0[0];
-    batch_ptr = nullptr;
+    ards::vm.gs.cmd_ptr = &ards::vm.gs.buf0[0];
+    ards::vm.gs.batch_ptr = nullptr;
     wait_for_frame_timing();
 }
 
@@ -286,7 +278,7 @@ void shades_display()
     Arduboy2Base::LCDCommandMode();
 
     {
-        uint8_t t = current_plane;
+        uint8_t t = ards::vm.gs.current_plane;
         uint8_t contrast = 255;
 #if ABC_SHADES == 3
         t = !t;
@@ -296,7 +288,7 @@ void shades_display()
         if(t & 1) contrast = 25;
         if(t & 2) contrast = 85;
 #endif
-        current_plane = t;
+        ards::vm.gs.current_plane = t;
 #if ABC_SHADES_ADJUST_CONTRAST
         Arduboy2Base::SPItransfer(0x81);
         Arduboy2Base::SPItransfer(contrast);
@@ -373,7 +365,7 @@ void shades_display()
 #if 0
             uint24_t t = w * p;
             frame *= (ABC_SHADES - 1);
-            frame += current_plane;
+            frame += ards::vm.gs.current_plane;
             img += t * frame;
             img += 5;
 #else
@@ -425,7 +417,7 @@ void shades_display()
                 : [img]    "+&r" (img)
                 , [frame]  "+&r" (frame)
                 , [t]      "=&d" (t)
-                : [plane]  ""    (&current_plane)
+                : [plane]  ""    (&ards::vm.gs.current_plane)
                 , [w]      "r"   (w)
                 , [p]      "r"   (p)
             );
@@ -461,7 +453,7 @@ void shades_display()
                 {
 #if 0
                     uint8_t tt;
-                    tt = p * current_plane;
+                    tt = p * ards::vm.gs.current_plane;
                     img += w * tt + 5u;
                     t = w * p;
 #else
@@ -483,7 +475,7 @@ void shades_display()
                         , [t]     "=&r" (t)
                         : [w]     "r"   (w)
                         , [p]     "r"   (p)
-                        , [plane] "r"   (current_plane)
+                        , [plane] "r"   (ards::vm.gs.current_plane)
                     );
 #endif
                 }
@@ -619,7 +611,7 @@ void shades_draw_rect(
     if(w >= uint8_t(128 - xc))
         w = 128 - xc;
 
-    uint8_t* p = cmd_ptr;
+    uint8_t* p = ards::vm.gs.cmd_ptr;
     static_assert(SHADES_CMD_FILLED_RECT == SHADES_CMD_RECT + 1, "");
     st_inc(p, SHADES_CMD_RECT + filled);
     st_inc(p, (uint8_t)xc);
@@ -627,7 +619,7 @@ void shades_draw_rect(
     st_inc(p, w);
     st_inc(p, h);
     st_inc(p, c);
-    cmd_ptr = p;
+    ards::vm.gs.cmd_ptr = p;
 }
 
 void shades_draw_sprite(
@@ -646,9 +638,9 @@ void shades_draw_sprite(
     if(x + w <= 0) return;
     if(y + h <= 0) return;
 
-    uint8_t* p = cmd_ptr;
+    uint8_t* p = ards::vm.gs.cmd_ptr;
     {
-        uint8_t* b = batch_ptr;
+        uint8_t* b = ards::vm.gs.batch_ptr;
         if(x < -128 || y < -128) goto unbatchable;
         if(frame >= 256) goto unbatchable;
         if(b == nullptr) goto start_new_batch;
@@ -665,17 +657,17 @@ start_new_batch:
     if(!cmd0_room(8))
         return;
 
-    batch_ptr = p;
-    batch_px = x;
-    batch_py = y;
+    ards::vm.gs.batch_ptr = p;
+    ards::vm.gs.batch_px = x;
+    ards::vm.gs.batch_py = y;
     st_inc(p, SHADES_CMD_SPRITE_BATCH);
     st_inc3(p, img);
     st_inc(p, 1);
     goto batch_add_first;
 
 batch_add:
-    if( (int8_t)x == int8_t(batch_px + batch_dx) &&
-        (int8_t)y == int8_t(batch_py + batch_dy))
+    if( (int8_t)x == int8_t(ards::vm.gs.batch_px + ards::vm.gs.batch_dx) &&
+        (int8_t)y == int8_t(ards::vm.gs.batch_py + ards::vm.gs.batch_dy))
     {
         st_inc(p, (uint8_t)frame);
         st_inc(p, SPRITE_BATCH_ADV);
@@ -686,12 +678,12 @@ batch_add_first:
         st_inc(p, (uint8_t)frame);
         st_inc(p, (uint8_t)y);
         st_inc(p, (uint8_t)x);
-        batch_dx = int8_t(x - batch_px);
-        batch_dy = int8_t(y - batch_py);
+        ards::vm.gs.batch_dx = int8_t(x - ards::vm.gs.batch_px);
+        ards::vm.gs.batch_dy = int8_t(y - ards::vm.gs.batch_py);
     }
-    batch_px = (int8_t)x;
-    batch_py = (int8_t)y;
-    cmd_ptr = p;
+    ards::vm.gs.batch_px = (int8_t)x;
+    ards::vm.gs.batch_py = (int8_t)y;
+    ards::vm.gs.cmd_ptr = p;
     return;
 
 unbatchable:
@@ -703,7 +695,7 @@ unbatchable:
     st_inc2(p, (uint16_t)y);
     st_inc3(p, img);
     st_inc2(p, frame);
-    cmd_ptr = p;
+    ards::vm.gs.cmd_ptr = p;
 }
 
 void shades_draw_chars_begin(int16_t x, int16_t y)
@@ -711,35 +703,35 @@ void shades_draw_chars_begin(int16_t x, int16_t y)
     if(!cmd0_room(12)) // at least one char
         return;
     
-    uint8_t* p = cmd_ptr;
+    uint8_t* p = ards::vm.gs.cmd_ptr;
     st_inc(p, SHADES_CMD_CHARS);
     st_inc2(p, (uint16_t)x);
     st_inc2(p, (uint16_t)y);
     st_inc3(p, ards::vm.text_font);
     st_inc(p, ards::vm.text_mode);
-    batch_ptr = p;
+    ards::vm.gs.batch_ptr = p;
     st_inc2(p, 0);
-    cmd_ptr = p;
+    ards::vm.gs.cmd_ptr = p;
 }
 
 void shades_draw_char(char c)
 {
-    uint8_t* b = batch_ptr;
+    uint8_t* b = ards::vm.gs.batch_ptr;
     if(b == nullptr) return;
     if(!cmd0_room(1))
     {
-        batch_ptr = nullptr;
+        ards::vm.gs.batch_ptr = nullptr;
         return;
     }
     uint16_t n = *(uint16_t*)b;
     n += 1;
     *(uint16_t*)b = n;
-    st_inc(cmd_ptr, (uint8_t)c);
+    st_inc(ards::vm.gs.cmd_ptr, (uint8_t)c);
 }
 
 void shades_draw_chars_end()
 {
-    batch_ptr = nullptr;
+    ards::vm.gs.batch_ptr = nullptr;
 }
 
 #endif

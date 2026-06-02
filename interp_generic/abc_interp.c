@@ -352,7 +352,7 @@ static uint32_t ld_inc3(uint8_t const** p)
     return r;
 }
 
-#define CMD_SIZE ((1024-256)/2)
+#define CMD_SIZE ((704-256)/2)
 static uint8_t* cmd0_begin(abc_interp_t* interp)
 {
     return &interp->globals[256];
@@ -1716,7 +1716,7 @@ static abc_result_t sys_strlen_P(abc_interp_t* interp, abc_host_t const* h)
 
 static uint16_t max_save_size(abc_interp_t* interp)
 {
-    return interp->shades == 2 ? 1024 : 256;
+    return interp->shades == 2 ? 704 : 256;
 }
 
 static uint16_t save_size(abc_interp_t* interp, abc_host_t const* h)
@@ -2108,6 +2108,7 @@ static uint8_t shades_display_char(
         uint8_t bit = (1u << (py & 7));
         for(int32_t ix = x0, px = 0; ix < x1; ++ix, ++px)
         {
+            if(ix < 0 || ix >= 128 || iy < 0 || iy >= 64) continue;
             uint32_t off = (py >> 3) * w + px;
             uint8_t p = prog8(host, addr + off);
             if(p & bit)

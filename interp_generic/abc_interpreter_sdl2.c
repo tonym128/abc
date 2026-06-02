@@ -50,7 +50,7 @@ static void* data;
 static size_t data_size;
 static uint64_t start_ticks;
 
-static uint32_t display[128 * 64];
+static uint32_t screen_pixels[128 * 64];
 
 static SDL_AudioSpec audio_desired;
 static SDL_AudioSpec audio_obtained;
@@ -411,10 +411,10 @@ int main(int argc, char** argv)
                 t += (b << 0);
                 t += (b << 8);
                 t += (b << 16);
-                display[y * 128 + x] = t;
+                screen_pixels[y * 128 + x] = t;
             }
         }
-        SDL_UpdateTexture(texture, NULL, display, 128 * sizeof(uint32_t));
+        SDL_UpdateTexture(texture, NULL, screen_pixels, 128 * sizeof(uint32_t));
 
         SDL_RenderCopy(renderer, texture, NULL, NULL);
 

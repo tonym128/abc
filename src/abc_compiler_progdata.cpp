@@ -152,24 +152,47 @@ bool compiler_t::progdata_expr_valid_memcpy(
         return true;
     }
     case compiler_type_t::STRUCT:
+    case compiler_type_t::UNION:
     {
         if(n.type != AST::COMPOUND_LITERAL)
             return false;
-        if(n.children.size() > t.children.size())
-            return false;
-        for(size_t i = 0; i < n.children.size(); ++i)
+        if(t.is_struct())
         {
-            auto const& child = n.children[i];
-            auto const& tt = t.children[i];
-            if(!progdata_expr_valid_memcpy(child, tt, data))
+            if(n.children.size() > t.children.size())
                 return false;
+            for(size_t i = 0; i < n.children.size(); ++i)
+            {
+                auto const& child = n.children[i];
+                auto const& tt = t.children[i];
+                if(!progdata_expr_valid_memcpy(child, tt, data))
+                    return false;
+            }
+            for(size_t i = n.children.size(); i < t.children.size(); ++i)
+            {
+                if(t.children[i].is_any_ref() || t.children[i].has_child_ref())
+                    return false;
+                size_t rem_bytes = t.children[i].prim_size;
+                for(size_t j = 0; j < rem_bytes; ++j)
+                    data.push_back(0);
+            }
         }
-        for(size_t i = n.children.size(); i < t.children.size(); ++i)
+        else
         {
-            if(t.is_any_ref() || t.has_child_ref())
+            if(n.children.size() > 1)
                 return false;
-            for(size_t j = 0; j < t.children[i].prim_size; ++j)
-                data.push_back(0);
+            if(!n.children.empty())
+            {
+                if(!progdata_expr_valid_memcpy(n.children[0], t.children[0], data))
+                    return false;
+                size_t rem_bytes = t.prim_size - t.children[0].prim_size;
+                for(size_t i = 0; i < rem_bytes; ++i)
+                    data.push_back(0);
+            }
+            else
+            {
+                for(size_t i = 0; i < t.prim_size; ++i)
+                    data.push_back(0);
+            }
         }
         return true;
     }
@@ -347,24 +370,50 @@ void compiler_t::progdata_expr(
         break;
     }
     case compiler_type_t::STRUCT:
+    case compiler_type_t::UNION:
     {
         if(n.type != AST::COMPOUND_LITERAL)
             goto error;
-        if(n.children.size() > t.children.size())
+        if(t.is_struct())
         {
-            errs.push_back({
-                "Too many members in prog struct initializer",
-                n.line_info });
-            return;
+            if(n.children.size() > t.children.size())
+            {
+                errs.push_back({
+                    "Too many members in prog struct initializer",
+                    n.line_info });
+                return;
+            }
+            for(size_t i = 0; i < n.children.size(); ++i)
+            {
+                auto const& child = n.children[i];
+                auto const& tt = t.children[i];
+                progdata_expr(child, tt, pd);
+            }
+            for(size_t i = n.children.size(); i < t.children.size(); ++i)
+                progdata_zero(n, t.children[i], pd);
         }
-        for(size_t i = 0; i < n.children.size(); ++i)
+        else
         {
-            auto const& child = n.children[i];
-            auto const& tt = t.children[i];
-            progdata_expr(child, tt, pd);
+            if(n.children.size() > 1)
+            {
+                errs.push_back({
+                    "Too many members in prog union initializer",
+                    n.line_info });
+                return;
+            }
+            if(!n.children.empty())
+            {
+                progdata_expr(n.children[0], t.children[0], pd);
+                size_t rem_bytes = t.prim_size - t.children[0].prim_size;
+                for(size_t i = 0; i < rem_bytes; ++i)
+                    pd.data.push_back(0);
+            }
+            else
+            {
+                for(size_t i = 0; i < t.prim_size; ++i)
+                    pd.data.push_back(0);
+            }
         }
-        for(size_t i = n.children.size(); i < t.children.size(); ++i)
-            progdata_zero(n, t.children[i], pd);
         break;
     }
     default:

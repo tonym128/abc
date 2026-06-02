@@ -2968,7 +2968,7 @@ static void sys_audio_playing()
     vm_push_u8(ards::Tones::playing());
 }
 
-constexpr size_t MAX_SAVE_SIZE = (ABC_SHADES == 2 ? 1024 : 256);
+constexpr size_t MAX_SAVE_SIZE = (ABC_SHADES == 2 ? 704 : 256);
 
 static void sys_save_exists()
 {
@@ -3579,29 +3579,23 @@ static void sys_wire_write()
     Wire.write(val);
 }
 
-static uint24_t wire_on_receive_pc = 0;
-static uint24_t wire_on_request_pc = 0;
-static uint8_t wire_on_receive_bytes = 0;
-static volatile uint8_t wire_on_receive_pending = 0;
-static volatile uint8_t wire_on_request_pending = 0;
-
 static void sys_wire_on_receive()
 {
     auto ptr = vm_pop_begin();
-    wire_on_receive_pc = vm_pop<uint24_t>(ptr);
+    ards::vm.wire_on_receive_pc = vm_pop<uint32_t>(ptr);
     vm_pop_end(ptr);
     Wire.onReceive([](int n) {
-        wire_on_receive_bytes = (uint8_t)n;
-        wire_on_receive_pending = 1;
+        ards::vm.wire_on_receive_bytes = (uint8_t)n;
+        ards::vm.wire_on_receive_pending = 1;
     });
 }
 static void sys_wire_on_request()
 {
     auto ptr = vm_pop_begin();
-    wire_on_request_pc = vm_pop<uint24_t>(ptr);
+    ards::vm.wire_on_request_pc = vm_pop<uint32_t>(ptr);
     vm_pop_end(ptr);
     Wire.onRequest([]() {
-        wire_on_request_pending = 1;
+        ards::vm.wire_on_request_pending = 1;
     });
 }
 static void sys_wire_begin_transmission()
@@ -3615,9 +3609,9 @@ static void sys_wire_end_transmission() { vm_push((uint8_t)Wire.endTransmission(
 
 static void sys_wire_poll()
 {
-    if (wire_on_request_pending && wire_on_request_pc != 0)
+    if (ards::vm.wire_on_request_pending && ards::vm.wire_on_request_pc != 0)
     {
-        wire_on_request_pending = 0;
+        ards::vm.wire_on_request_pending = 0;
         if (ards::vm.csp >= ards::MAX_CALLS * 3)
         {
             ards::vm.error = ards::ERR_CST;
@@ -3627,13 +3621,13 @@ static void sys_wire_poll()
         calls[ards::vm.csp++] = (uint8_t)(ards::vm.pc >> 0);
         calls[ards::vm.csp++] = (uint8_t)(ards::vm.pc >> 8);
         calls[ards::vm.csp++] = (uint8_t)(ards::vm.pc >> 16);
-        ards::vm.pc = wire_on_request_pc;
+        ards::vm.pc = ards::vm.wire_on_request_pc;
         seek_to_pc();
     }
-    else if (wire_on_receive_pending && wire_on_receive_pc != 0)
+    else if (ards::vm.wire_on_receive_pending && ards::vm.wire_on_receive_pc != 0)
     {
-        wire_on_receive_pending = 0;
-        vm_push(wire_on_receive_bytes);
+        ards::vm.wire_on_receive_pending = 0;
+        vm_push(ards::vm.wire_on_receive_bytes);
         if (ards::vm.csp >= ards::MAX_CALLS * 3)
         {
             ards::vm.error = ards::ERR_CST;
@@ -3643,7 +3637,7 @@ static void sys_wire_poll()
         calls[ards::vm.csp++] = (uint8_t)(ards::vm.pc >> 0);
         calls[ards::vm.csp++] = (uint8_t)(ards::vm.pc >> 8);
         calls[ards::vm.csp++] = (uint8_t)(ards::vm.pc >> 16);
-        ards::vm.pc = wire_on_receive_pc;
+        ards::vm.pc = ards::vm.wire_on_receive_pc;
         seek_to_pc();
     }
 }

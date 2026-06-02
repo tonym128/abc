@@ -1,0 +1,2 @@
+/usr/lib/emscripten/emar qc libmidifile.a CMakeFiles/midifile.dir/src/Options.cpp.o CMakeFiles/midifile.dir/src/Binasc.cpp.o CMakeFiles/midifile.dir/src/MidiEvent.cpp.o CMakeFiles/midifile.dir/src/MidiEventList.cpp.o CMakeFiles/midifile.dir/src/MidiFile.cpp.o CMakeFiles/midifile.dir/src/MidiMessage.cpp.o
+/usr/lib/emscripten/emranlib libmidifile.a

@@ -1,0 +1,1 @@
+ libabc_interp.a deps/SDL/libSDL2main.a deps/SDL/libSDL2.a -lm 

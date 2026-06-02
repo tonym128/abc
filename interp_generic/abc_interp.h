@@ -86,18 +86,6 @@ typedef struct abc_host_t
 ********************************************************************/
 struct abc_interp_t
 {
-    
-    /* The host can use this for rendering: 128x64 8-bit pixels. */
-    uint8_t  display[8192];
-
-    /* The host can persist this to support saved games. */
-    uint8_t  saved[1024];
-    
-    uint8_t  display_buffer[1024];
-    uint8_t  globals[1024];
-    uint8_t  stack[256];
-    uint32_t call_stack[24];
-    
     /* Program counter */
     uint32_t pc;
     
@@ -105,6 +93,26 @@ struct abc_interp_t
     uint32_t audio_ns_rem;
     uint32_t audio_phase[3];
     uint32_t audio_addrs[3];
+
+    uint32_t seed;
+    uint32_t text_font;
+    uint32_t frame_start;
+    uint32_t frame_dur;
+
+    uint32_t wire_on_receive_pc;
+    uint32_t wire_on_request_pc;
+
+    /* The host can use this for rendering: 128x64 8-bit pixels. */
+    uint8_t  display[8192];
+
+    /* The host can persist this to support saved games. */
+    uint8_t  saved[704];
+    
+    uint8_t  display_buffer[1024];
+    uint8_t  globals[704];
+    uint8_t  stack[256];
+    uint32_t call_stack[24];
+    
     uint8_t  audio_tones[3];
     uint8_t  audio_ticks[3];
     uint8_t  music_active;
@@ -121,14 +129,15 @@ struct abc_interp_t
     
     /* Other state */
     uint8_t  shades;
-    uint32_t seed;
-    uint32_t text_font;
     uint8_t  text_color;
     uint8_t  buttons_prev;
     uint8_t  buttons_curr;
     uint8_t  waiting_for_frame;
-    uint32_t frame_start;
-    uint32_t frame_dur;
+
+    uint8_t  wire_on_receive_bytes;
+    volatile uint8_t  wire_on_receive_pending;
+    volatile uint8_t  wire_on_request_pending;
+
     uint16_t cmd_ptr;
     uint16_t batch_ptr;
     uint8_t  current_plane;
@@ -136,12 +145,6 @@ struct abc_interp_t
     int8_t   batch_py;
     int8_t   batch_dx;
     int8_t   batch_dy;
-
-    uint32_t wire_on_receive_pc;
-    uint32_t wire_on_request_pc;
-    uint8_t  wire_on_receive_bytes;
-    uint8_t  wire_on_receive_pending;
-    uint8_t  wire_on_request_pending;
     
 };
 

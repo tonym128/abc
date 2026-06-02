@@ -1,0 +1,14 @@
+prefix="/home/tonym/.cache/emscripten/sysroot"
+exec_prefix="${prefix}"
+libdir="${prefix}/lib"
+includedir="${prefix}/include"
+
+Name: tmxlite
+Description: lightweight C++14 parser for Tiled tmx files
+URL: https://github.com/fallahn/tmxlite
+Version: 5.2.2
+Requires: 
+Requires.private: 
+Cflags: -I"${includedir}"
+Libs: -L"${libdir}" -ltmxlite
+Libs.private: -L"${libdir}" -ltmxlite 

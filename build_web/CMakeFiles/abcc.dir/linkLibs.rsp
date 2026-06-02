@@ -1,0 +1,1 @@
+ libabc_compiler.a deps/Ardens/libardenslib.a deps/midifile/libmidifile.a "deps/tmxlite/libtmxlite-s.a" deps/Ardens/deps/fmt/libfmt.a deps/Ardens/deps/miniz/libminiz.a 

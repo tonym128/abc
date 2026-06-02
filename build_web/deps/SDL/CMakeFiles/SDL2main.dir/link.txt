@@ -1,0 +1,2 @@
+/usr/lib/emscripten/emar qc libSDL2main.a CMakeFiles/SDL2main.dir/src/main/dummy/SDL_dummy_main.c.o
+/usr/lib/emscripten/emranlib libSDL2main.a

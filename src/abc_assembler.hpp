@@ -86,7 +86,7 @@ private:
 
     std::string githash;
     int shades;
-    size_t max_globals_bytes() const { return shades == 2 ? 1024 : 256; }
+    size_t max_globals_bytes() const { return shades == 2 ? 704 : 256; }
 
     void add_global(compiler_global_t const& global);
     void add_label(std::string const& label);

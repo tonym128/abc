@@ -1,0 +1,14 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/tonym/Projects/ether_echos/abc/build_web/cmake_install.cmake",
+		"/home/tonym/Projects/ether_echos/abc/build_web/deps/midifile/cmake_install.cmake",
+		"/home/tonym/Projects/ether_echos/abc/build_web/deps/Ardens/cmake_install.cmake",
+		"/home/tonym/Projects/ether_echos/abc/build_web/deps/Ardens/deps/fmt/cmake_install.cmake",
+		"/home/tonym/Projects/ether_echos/abc/build_web/deps/Ardens/deps/miniz/cmake_install.cmake",
+		"/home/tonym/Projects/ether_echos/abc/build_web/deps/Ardens/deps/bitsery/cmake_install.cmake",
+		"/home/tonym/Projects/ether_echos/abc/build_web/deps/tmxlite/cmake_install.cmake",
+		"/home/tonym/Projects/ether_echos/abc/build_web/deps/SDL/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

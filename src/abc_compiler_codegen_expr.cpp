@@ -1696,47 +1696,80 @@ void compiler_t::codegen_expr_compound(
     }
     else if(type.is_struct_or_union())
     {
-        if(type.children.size() < a.children.size())
+        if(type.is_struct())
         {
-            errs.push_back({
-                "Too many elements in struct initializer",
-                a.line_info });
-            return;
-        }
-        if(type.is_union() && a.children.size() > 1)
-        {
-            errs.push_back({
-                "Union initializers may only have one element",
-                a.line_info });
-            return;
-        }
-        for(size_t i = 0; i < a.children.size(); ++i)
-        {
-            auto const& child = a.children[i];
-            auto const& t = type.children[i];
-            bool ref = t.is_ref();
-            if(child.type == AST::COMPOUND_LITERAL)
-                codegen_expr_compound(f, frame, child, t);
-            else
-            {
-                codegen_expr(f, frame, child, ref);
-                codegen_convert(f, frame, child, t, child.comp_type);
-            }
-        }
-        for(size_t i = a.children.size(); i < type.children.size(); ++i)
-        {
-            auto const& t = type.children[i];
-            if(t.is_ref())
+            if(type.children.size() < a.children.size())
             {
                 errs.push_back({
-                "Uninitialized reference in struct initializer",
-                a.line_info });
+                    "Too many elements in struct initializer",
+                    a.line_info });
                 return;
             }
-            for(size_t j = 0; j < type.children[i].prim_size; ++j)
+            for(size_t i = 0; i < a.children.size(); ++i)
             {
-                f.instrs.push_back({ I_PUSH, a.line(), 0 });
-                frame.size += 1;
+                auto const& child = a.children[i];
+                auto const& t = type.children[i];
+                bool ref = t.is_ref();
+                if(child.type == AST::COMPOUND_LITERAL)
+                    codegen_expr_compound(f, frame, child, t);
+                else
+                {
+                    codegen_expr(f, frame, child, ref);
+                    codegen_convert(f, frame, child, t, child.comp_type);
+                }
+            }
+            for(size_t i = a.children.size(); i < type.children.size(); ++i)
+            {
+                auto const& t = type.children[i];
+                if(t.is_ref())
+                {
+                    errs.push_back({
+                        "Uninitialized reference in struct initializer",
+                        a.line_info });
+                    return;
+                }
+                for(size_t j = 0; j < t.prim_size; ++j)
+                {
+                    f.instrs.push_back({ I_PUSH, a.line(), 0 });
+                    frame.size += 1;
+                }
+            }
+        }
+        else
+        {
+            if(a.children.size() > 1)
+            {
+                errs.push_back({
+                    "Union initializers may only have one element",
+                    a.line_info });
+                return;
+            }
+            if(!a.children.empty())
+            {
+                auto const& child = a.children[0];
+                auto const& t = type.children[0];
+                bool ref = t.is_ref();
+                if(child.type == AST::COMPOUND_LITERAL)
+                    codegen_expr_compound(f, frame, child, t);
+                else
+                {
+                    codegen_expr(f, frame, child, ref);
+                    codegen_convert(f, frame, child, t, child.comp_type);
+                }
+                size_t rem = type.prim_size - t.prim_size;
+                for(size_t j = 0; j < rem; ++j)
+                {
+                    f.instrs.push_back({ I_PUSH, a.line(), 0 });
+                    frame.size += 1;
+                }
+            }
+            else
+            {
+                for(size_t j = 0; j < type.prim_size; ++j)
+                {
+                    f.instrs.push_back({ I_PUSH, a.line(), 0 });
+                    frame.size += 1;
+                }
             }
         }
     }

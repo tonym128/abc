@@ -1,0 +1,32 @@
+deps/Ardens/deps/miniz/CMakeFiles/miniz.dir/miniz_tinfl.c.o: \
+  /home/tonym/Projects/ether_echos/abc/deps/Ardens/deps/miniz/miniz_tinfl.c \
+  /home/tonym/Projects/ether_echos/abc/deps/Ardens/deps/miniz/miniz.h \
+  /home/tonym/Projects/ether_echos/abc/deps/Ardens/deps/miniz/miniz_export.h \
+  /opt/emscripten-llvm/lib/clang/23/include/stddef.h \
+  /home/tonym/.cache/emscripten/sysroot/include/stddef.h \
+  /opt/emscripten-llvm/lib/clang/23/include/__stddef_header_macro.h \
+  /opt/emscripten-llvm/lib/clang/23/include/__stddef_ptrdiff_t.h \
+  /opt/emscripten-llvm/lib/clang/23/include/__stddef_size_t.h \
+  /opt/emscripten-llvm/lib/clang/23/include/__stddef_wchar_t.h \
+  /opt/emscripten-llvm/lib/clang/23/include/__stddef_null.h \
+  /opt/emscripten-llvm/lib/clang/23/include/__stddef_max_align_t.h \
+  /opt/emscripten-llvm/lib/clang/23/include/__stddef_offsetof.h \
+  /home/tonym/.cache/emscripten/sysroot/include/compat/time.h \
+  /home/tonym/.cache/emscripten/sysroot/include/time.h \
+  /home/tonym/.cache/emscripten/sysroot/include/features.h \
+  /home/tonym/.cache/emscripten/sysroot/include/bits/alltypes.h \
+  /home/tonym/Projects/ether_echos/abc/deps/Ardens/deps/miniz/miniz_common.h \
+  /home/tonym/.cache/emscripten/sysroot/include/assert.h \
+  /opt/emscripten-llvm/lib/clang/23/include/stdint.h \
+  /home/tonym/.cache/emscripten/sysroot/include/stdint.h \
+  /home/tonym/.cache/emscripten/sysroot/include/compat/stdlib.h \
+  /home/tonym/.cache/emscripten/sysroot/include/stdlib.h \
+  /home/tonym/.cache/emscripten/sysroot/include/alloca.h \
+  /home/tonym/.cache/emscripten/sysroot/include/compat/string.h \
+  /home/tonym/.cache/emscripten/sysroot/include/string.h \
+  /home/tonym/.cache/emscripten/sysroot/include/strings.h \
+  /home/tonym/.cache/emscripten/sysroot/include/stdio.h \
+  /home/tonym/.cache/emscripten/sysroot/include/wasi/api.h \
+  /home/tonym/Projects/ether_echos/abc/deps/Ardens/deps/miniz/miniz_tdef.h \
+  /home/tonym/Projects/ether_echos/abc/deps/Ardens/deps/miniz/miniz_tinfl.h \
+  /home/tonym/Projects/ether_echos/abc/deps/Ardens/deps/miniz/miniz_zip.h

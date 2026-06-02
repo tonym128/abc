@@ -1,0 +1,2 @@
+/usr/lib/emscripten/emar qc libfmt.a CMakeFiles/fmt.dir/src/format.cc.o CMakeFiles/fmt.dir/src/os.cc.o
+/usr/lib/emscripten/emranlib libfmt.a

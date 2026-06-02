@@ -1,0 +1,11 @@
+prefix=/home/tonym/.cache/emscripten/sysroot
+exec_prefix=/home/tonym/.cache/emscripten/sysroot
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: fmt
+Description: A modern formatting library
+Version: 11.0.2
+Libs: -L${libdir} -lfmt
+Cflags: -I${includedir}
+
