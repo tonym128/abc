@@ -77,15 +77,15 @@ CMakeFiles/abcc.dir/src/abcc.cpp.o: CMakeFiles/abcc.dir/includes_CXX.rsp
 CMakeFiles/abcc.dir/src/abcc.cpp.o: /home/tonym/Projects/ether_echos/abc/src/abcc.cpp
 CMakeFiles/abcc.dir/src/abcc.cpp.o: CMakeFiles/abcc.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/tonym/Projects/ether_echos/abc/build_web/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/abcc.dir/src/abcc.cpp.o"
-	/usr/lib/emscripten/em++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -DABC_VERSION=\"aff458d\" -MD -MT CMakeFiles/abcc.dir/src/abcc.cpp.o -MF CMakeFiles/abcc.dir/src/abcc.cpp.o.d -o CMakeFiles/abcc.dir/src/abcc.cpp.o -c /home/tonym/Projects/ether_echos/abc/src/abcc.cpp
+	/usr/lib/emscripten/em++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -DABC_VERSION=\"8da7e3d\" -MD -MT CMakeFiles/abcc.dir/src/abcc.cpp.o -MF CMakeFiles/abcc.dir/src/abcc.cpp.o.d -o CMakeFiles/abcc.dir/src/abcc.cpp.o -c /home/tonym/Projects/ether_echos/abc/src/abcc.cpp
 
 CMakeFiles/abcc.dir/src/abcc.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/abcc.dir/src/abcc.cpp.i"
-	/usr/lib/emscripten/em++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -DABC_VERSION=\"aff458d\" -E /home/tonym/Projects/ether_echos/abc/src/abcc.cpp > CMakeFiles/abcc.dir/src/abcc.cpp.i
+	/usr/lib/emscripten/em++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -DABC_VERSION=\"8da7e3d\" -E /home/tonym/Projects/ether_echos/abc/src/abcc.cpp > CMakeFiles/abcc.dir/src/abcc.cpp.i
 
 CMakeFiles/abcc.dir/src/abcc.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/abcc.dir/src/abcc.cpp.s"
-	/usr/lib/emscripten/em++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -DABC_VERSION=\"aff458d\" -S /home/tonym/Projects/ether_echos/abc/src/abcc.cpp -o CMakeFiles/abcc.dir/src/abcc.cpp.s
+	/usr/lib/emscripten/em++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -DABC_VERSION=\"8da7e3d\" -S /home/tonym/Projects/ether_echos/abc/src/abcc.cpp -o CMakeFiles/abcc.dir/src/abcc.cpp.s
 
 CMakeFiles/abcc.dir/src/ide_export_arduboy.cpp.o: CMakeFiles/abcc.dir/flags.make
 CMakeFiles/abcc.dir/src/ide_export_arduboy.cpp.o: CMakeFiles/abcc.dir/includes_CXX.rsp

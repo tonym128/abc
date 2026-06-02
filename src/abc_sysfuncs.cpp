@@ -124,6 +124,18 @@ std::unordered_map<std::string, sysfunc_t> const sys_names =
     { "wire_begin_transmission", SYS_WIRE_BEGIN_TRANSMISSION },
     { "wire_end_transmission", SYS_WIRE_END_TRANSMISSION },
     { "wire_poll",             SYS_WIRE_POLL             },
+
+    { "i2c_begin",             SYS_WIRE_BEGIN            },
+    { "i2c_begin_address",     SYS_WIRE_BEGIN_ADDR       },
+    { "i2c_request_from",      SYS_WIRE_REQUEST_FROM     },
+    { "i2c_available",         SYS_WIRE_AVAILABLE        },
+    { "i2c_read",              SYS_WIRE_READ             },
+    { "i2c_write",             SYS_WIRE_WRITE            },
+    { "i2c_on_receive",        SYS_WIRE_ON_RECEIVE       },
+    { "i2c_on_request",        SYS_WIRE_ON_REQUEST       },
+    { "i2c_begin_transmission", SYS_WIRE_BEGIN_TRANSMISSION },
+    { "i2c_end_transmission",  SYS_WIRE_END_TRANSMISSION },
+    { "i2c_poll",              SYS_WIRE_POLL             },
 };
 
 static std::string const CAT_GRAPHICS = "Graphics";
