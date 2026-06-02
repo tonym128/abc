@@ -107,15 +107,15 @@ CMakeFiles/abc.dir/src/ide_common.cpp.o: CMakeFiles/abc.dir/includes_CXX.rsp
 CMakeFiles/abc.dir/src/ide_common.cpp.o: /home/tonym/Projects/ether_echos/abc/src/ide_common.cpp
 CMakeFiles/abc.dir/src/ide_common.cpp.o: CMakeFiles/abc.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/tonym/Projects/ether_echos/abc/build_web/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/abc.dir/src/ide_common.cpp.o"
-	/usr/lib/emscripten/em++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -DABC_VERSION=\"d50de53\" -MD -MT CMakeFiles/abc.dir/src/ide_common.cpp.o -MF CMakeFiles/abc.dir/src/ide_common.cpp.o.d -o CMakeFiles/abc.dir/src/ide_common.cpp.o -c /home/tonym/Projects/ether_echos/abc/src/ide_common.cpp
+	/usr/lib/emscripten/em++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -DABC_VERSION=\"aff458d\" -MD -MT CMakeFiles/abc.dir/src/ide_common.cpp.o -MF CMakeFiles/abc.dir/src/ide_common.cpp.o.d -o CMakeFiles/abc.dir/src/ide_common.cpp.o -c /home/tonym/Projects/ether_echos/abc/src/ide_common.cpp
 
 CMakeFiles/abc.dir/src/ide_common.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/abc.dir/src/ide_common.cpp.i"
-	/usr/lib/emscripten/em++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -DABC_VERSION=\"d50de53\" -E /home/tonym/Projects/ether_echos/abc/src/ide_common.cpp > CMakeFiles/abc.dir/src/ide_common.cpp.i
+	/usr/lib/emscripten/em++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -DABC_VERSION=\"aff458d\" -E /home/tonym/Projects/ether_echos/abc/src/ide_common.cpp > CMakeFiles/abc.dir/src/ide_common.cpp.i
 
 CMakeFiles/abc.dir/src/ide_common.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/abc.dir/src/ide_common.cpp.s"
-	/usr/lib/emscripten/em++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -DABC_VERSION=\"d50de53\" -S /home/tonym/Projects/ether_echos/abc/src/ide_common.cpp -o CMakeFiles/abc.dir/src/ide_common.cpp.s
+	/usr/lib/emscripten/em++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -DABC_VERSION=\"aff458d\" -S /home/tonym/Projects/ether_echos/abc/src/ide_common.cpp -o CMakeFiles/abc.dir/src/ide_common.cpp.s
 
 CMakeFiles/abc.dir/src/ide_compile.cpp.o: CMakeFiles/abc.dir/flags.make
 CMakeFiles/abc.dir/src/ide_compile.cpp.o: CMakeFiles/abc.dir/includes_CXX.rsp

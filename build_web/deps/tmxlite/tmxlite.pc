@@ -6,7 +6,7 @@ includedir="${prefix}/include"
 Name: tmxlite
 Description: lightweight C++14 parser for Tiled tmx files
 URL: https://github.com/fallahn/tmxlite
-Version: 5.2.2
+Version: 
 Requires: 
 Requires.private: 
 Cflags: -I"${includedir}"

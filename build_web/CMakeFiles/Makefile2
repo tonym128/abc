@@ -302,9 +302,9 @@ CMakeFiles/abc_interp.dir/clean:
 # Target rules for target CMakeFiles/abc_interpreter_sdl2.dir
 
 # All Build rule for target.
-CMakeFiles/abc_interpreter_sdl2.dir/all: CMakeFiles/abc_interp.dir/all
 CMakeFiles/abc_interpreter_sdl2.dir/all: deps/SDL/CMakeFiles/SDL2main.dir/all
 CMakeFiles/abc_interpreter_sdl2.dir/all: deps/SDL/CMakeFiles/SDL2-static.dir/all
+CMakeFiles/abc_interpreter_sdl2.dir/all: CMakeFiles/abc_interp.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/abc_interpreter_sdl2.dir/build.make CMakeFiles/abc_interpreter_sdl2.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/abc_interpreter_sdl2.dir/build.make CMakeFiles/abc_interpreter_sdl2.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/tonym/Projects/ether_echos/abc/build_web/CMakeFiles --progress-num=61 "Built target abc_interpreter_sdl2"
@@ -368,8 +368,8 @@ CMakeFiles/abc_interpreter_sokol.dir/clean:
 # Target rules for target CMakeFiles/abc_compiler.dir
 
 # All Build rule for target.
-CMakeFiles/abc_compiler.dir/all: deps/Ardens/deps/fmt/CMakeFiles/fmt.dir/all
 CMakeFiles/abc_compiler.dir/all: deps/midifile/CMakeFiles/midifile.dir/all
+CMakeFiles/abc_compiler.dir/all: deps/Ardens/deps/fmt/CMakeFiles/fmt.dir/all
 CMakeFiles/abc_compiler.dir/all: deps/Ardens/deps/miniz/CMakeFiles/miniz.dir/all
 CMakeFiles/abc_compiler.dir/all: deps/tmxlite/CMakeFiles/tmxlite.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/abc_compiler.dir/build.make CMakeFiles/abc_compiler.dir/depend
@@ -403,12 +403,12 @@ CMakeFiles/abc_compiler.dir/clean:
 # Target rules for target CMakeFiles/abcc.dir
 
 # All Build rule for target.
-CMakeFiles/abcc.dir/all: deps/Ardens/deps/fmt/CMakeFiles/fmt.dir/all
-CMakeFiles/abcc.dir/all: CMakeFiles/abc_compiler.dir/all
-CMakeFiles/abcc.dir/all: deps/Ardens/CMakeFiles/ardenslib.dir/all
 CMakeFiles/abcc.dir/all: deps/midifile/CMakeFiles/midifile.dir/all
+CMakeFiles/abcc.dir/all: deps/Ardens/CMakeFiles/ardenslib.dir/all
+CMakeFiles/abcc.dir/all: deps/Ardens/deps/fmt/CMakeFiles/fmt.dir/all
 CMakeFiles/abcc.dir/all: deps/Ardens/deps/miniz/CMakeFiles/miniz.dir/all
 CMakeFiles/abcc.dir/all: deps/tmxlite/CMakeFiles/tmxlite.dir/all
+CMakeFiles/abcc.dir/all: CMakeFiles/abc_compiler.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/abcc.dir/build.make CMakeFiles/abcc.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/abcc.dir/build.make CMakeFiles/abcc.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/tonym/Projects/ether_echos/abc/build_web/CMakeFiles --progress-num=62 "Built target abcc"
@@ -440,12 +440,12 @@ CMakeFiles/abcc.dir/clean:
 # Target rules for target CMakeFiles/abc.dir
 
 # All Build rule for target.
-CMakeFiles/abc.dir/all: deps/Ardens/deps/fmt/CMakeFiles/fmt.dir/all
-CMakeFiles/abc.dir/all: CMakeFiles/abc_compiler.dir/all
-CMakeFiles/abc.dir/all: deps/Ardens/CMakeFiles/ardensdebuggerlib.dir/all
 CMakeFiles/abc.dir/all: deps/midifile/CMakeFiles/midifile.dir/all
+CMakeFiles/abc.dir/all: deps/Ardens/CMakeFiles/ardensdebuggerlib.dir/all
+CMakeFiles/abc.dir/all: deps/Ardens/deps/fmt/CMakeFiles/fmt.dir/all
 CMakeFiles/abc.dir/all: deps/Ardens/deps/miniz/CMakeFiles/miniz.dir/all
 CMakeFiles/abc.dir/all: deps/tmxlite/CMakeFiles/tmxlite.dir/all
+CMakeFiles/abc.dir/all: CMakeFiles/abc_compiler.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/abc.dir/build.make CMakeFiles/abc.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/abc.dir/build.make CMakeFiles/abc.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/tonym/Projects/ether_echos/abc/build_web/CMakeFiles --progress-num=49,50,51,52,53,54 "Built target abc"
@@ -477,13 +477,13 @@ CMakeFiles/abc.dir/clean:
 # Target rules for target CMakeFiles/abc_integration.dir
 
 # All Build rule for target.
-CMakeFiles/abc_integration.dir/all: deps/Ardens/deps/fmt/CMakeFiles/fmt.dir/all
-CMakeFiles/abc_integration.dir/all: CMakeFiles/abc_interp.dir/all
-CMakeFiles/abc_integration.dir/all: CMakeFiles/abc_compiler.dir/all
-CMakeFiles/abc_integration.dir/all: deps/Ardens/CMakeFiles/ardensdebuggerlib.dir/all
 CMakeFiles/abc_integration.dir/all: deps/midifile/CMakeFiles/midifile.dir/all
+CMakeFiles/abc_integration.dir/all: deps/Ardens/CMakeFiles/ardensdebuggerlib.dir/all
+CMakeFiles/abc_integration.dir/all: deps/Ardens/deps/fmt/CMakeFiles/fmt.dir/all
 CMakeFiles/abc_integration.dir/all: deps/Ardens/deps/miniz/CMakeFiles/miniz.dir/all
 CMakeFiles/abc_integration.dir/all: deps/tmxlite/CMakeFiles/tmxlite.dir/all
+CMakeFiles/abc_integration.dir/all: CMakeFiles/abc_interp.dir/all
+CMakeFiles/abc_integration.dir/all: CMakeFiles/abc_compiler.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/abc_integration.dir/build.make CMakeFiles/abc_integration.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/abc_integration.dir/build.make CMakeFiles/abc_integration.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/tonym/Projects/ether_echos/abc/build_web/CMakeFiles --progress-num=60 "Built target abc_integration"
@@ -613,8 +613,8 @@ deps/Ardens/CMakeFiles/ardensdebuggerlib.dir/clean:
 # Target rules for target deps/Ardens/CMakeFiles/ArdensFlashcart.dir
 
 # All Build rule for target.
-deps/Ardens/CMakeFiles/ArdensFlashcart.dir/all: deps/Ardens/deps/fmt/CMakeFiles/fmt.dir/all
 deps/Ardens/CMakeFiles/ArdensFlashcart.dir/all: deps/Ardens/CMakeFiles/ardenslib.dir/all
+deps/Ardens/CMakeFiles/ArdensFlashcart.dir/all: deps/Ardens/deps/fmt/CMakeFiles/fmt.dir/all
 deps/Ardens/CMakeFiles/ArdensFlashcart.dir/all: deps/Ardens/deps/miniz/CMakeFiles/miniz.dir/all
 	$(MAKE) $(MAKESILENT) -f deps/Ardens/CMakeFiles/ArdensFlashcart.dir/build.make deps/Ardens/CMakeFiles/ArdensFlashcart.dir/depend
 	$(MAKE) $(MAKESILENT) -f deps/Ardens/CMakeFiles/ArdensFlashcart.dir/build.make deps/Ardens/CMakeFiles/ArdensFlashcart.dir/build
@@ -647,8 +647,8 @@ deps/Ardens/CMakeFiles/ArdensFlashcart.dir/clean:
 # Target rules for target deps/Ardens/CMakeFiles/integration_tests.dir
 
 # All Build rule for target.
-deps/Ardens/CMakeFiles/integration_tests.dir/all: deps/Ardens/deps/fmt/CMakeFiles/fmt.dir/all
 deps/Ardens/CMakeFiles/integration_tests.dir/all: deps/Ardens/CMakeFiles/ardenslib.dir/all
+deps/Ardens/CMakeFiles/integration_tests.dir/all: deps/Ardens/deps/fmt/CMakeFiles/fmt.dir/all
 deps/Ardens/CMakeFiles/integration_tests.dir/all: deps/Ardens/deps/miniz/CMakeFiles/miniz.dir/all
 	$(MAKE) $(MAKESILENT) -f deps/Ardens/CMakeFiles/integration_tests.dir/build.make deps/Ardens/CMakeFiles/integration_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f deps/Ardens/CMakeFiles/integration_tests.dir/build.make deps/Ardens/CMakeFiles/integration_tests.dir/build

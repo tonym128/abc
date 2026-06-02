@@ -8,5 +8,5 @@ CXX_INCLUDES = @CMakeFiles/abc.dir/includes_CXX.rsp
 
 CXX_FLAGS =   -O3 -flto -fno-exceptions -O3 -DNDEBUG -std=c++17
 
-# Custom options: CMakeFiles/abc.dir/src/ide_common.cpp.o_OPTIONS = -DABC_VERSION="d50de53"
+# Custom options: CMakeFiles/abc.dir/src/ide_common.cpp.o_OPTIONS = -DABC_VERSION="aff458d"
 
